@@ -11,4 +11,4 @@ Este repositório Github armazena todos os códigos e dados utilizados durante m
 
 Nunca se esqueça de que parte da ciência reside na reprodutibilidade, por isso considere sempre deixar seus dados e códigos abertos.
 
-Questões ou sugestões?: carlos.melo@ufrgs.br
+Perguntas ou sugestões?: carlos.melo@ufrgs.br
