@@ -13,4 +13,3 @@ Nunca se esqueça de que parte da ciência reside na reprodutibilidade, por isso
 
 Perguntas ou sugestões?: carlos.melo@ufrgs.br
 
-Updt
