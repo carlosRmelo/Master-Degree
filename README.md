@@ -23,15 +23,15 @@ Para evitar qualquer tipo de incompatibilidade, é recomendado a que a versão d
     pip install package == version
 
 
-- `[mpdaf](https://mpdaf.readthedocs.io/en/latest/)` v.3.4
-- `numpy <https://numpy.org/doc/>` v.1.18.5
-- `scipy <https://www.scipy.org/>` v.1.5.2
-- `astropy <https://www.astropy.org/>` v.4.0.1
-- `emcee <https://emcee.readthedocs.io/en/stable/>` v.3.0.2
-- `jampy <https://pypi.org/project/jampy/#description>` v.6.0.0
-- `pyautolens <https://pyautolens.readthedocs.io/en/latest/>` v.1.1.4
-- `pPXF <https://pypi.org/project/ppxf/>` v.6.7.17
-- `mgefit <https://pypi.org/project/mgefit/>` v.5.0.11
+-  [mpdaf](https://mpdaf.readthedocs.io/en/latest/) v.3.4
+- [numpy](https://numpy.org/doc/) v.1.18.5
+- [scipy](https://www.scipy.org/) v.1.5.2
+- [astropy](https://www.astropy.org/) v.4.0.1
+- [emcee](https://emcee.readthedocs.io/en/stable/) v.3.0.2
+- [jampy](https://pypi.org/project/jampy/#description) v.6.0.0
+- [pyautolens](https://pyautolens.readthedocs.io/en/latest/) v.1.1.4
+- [pPXF](https://pypi.org/project/ppxf/) v.6.7.17
+- [mgefit](https://pypi.org/project/mgefit/) v.5.0.11
 
 
 
