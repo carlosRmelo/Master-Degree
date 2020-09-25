@@ -1,0 +1,16 @@
+2020-07-14 12:57:35,207 - pyswarms.single.local_best - INFO - Optimize for 500 iters with {'c1': 0.5, 'c2': 0.3, 'w': 0.9, 'k': 3, 'p': 2}
+2020-07-14 13:07:20,013 - pyswarms.single.local_best - INFO - Optimization finished | best cost: -1255667.0630100744, best pos: [-3.98504911e-01  2.72092158e-01 -9.77040752e-01 -6.35553496e-01
+  2.24545478e-02  2.17049479e+01  4.62726249e+00  7.09023117e-02
+ -2.83060737e-01 -8.11475750e-01  5.57970474e-01  1.89426869e+00
+  2.29465876e-01  8.79196679e-02  5.66472692e-01  7.73071557e-01
+  1.35311023e-06  2.88663783e+01  3.99726733e+00]
+2020-07-14 13:07:20,022 - root - INFO - 500 Iterations: Performing update (Visualization, outputting samples, etc.).
+2020-07-14 13:08:00,083 - pyswarms.single.local_best - INFO - Optimize for 500 iters with {'c1': 0.5, 'c2': 0.3, 'w': 0.9, 'k': 3, 'p': 2}
+2020-07-14 13:17:22,797 - pyswarms.single.local_best - INFO - Optimization finished | best cost: -541430.4506334173, best pos: [-1.44294030e+01 -2.03416274e+00  8.93864957e-01  4.78256769e-01
+  1.78972084e+05  1.02989689e+01  1.83338826e+00  2.27670916e-01
+  3.26924576e+00  1.84466522e-01 -3.58864279e-01  6.26833667e-01
+  4.58009103e-01  2.43115392e+02  9.97309238e-01 -6.21000973e-01
+  2.92627384e+05  2.10738038e+01  7.52937985e+00]
+2020-07-14 13:17:22,806 - root - INFO - 1000 Iterations: Performing update (Visualization, outputting samples, etc.).
+2020-07-14 13:18:03,717 - root - INFO - PySwarmsGlobal complete
+2020-07-14 13:18:03,719 - root - INFO - 1500 Iterations: Performing update (Visualization, outputting samples, etc.).
