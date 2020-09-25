@@ -1,0 +1,55 @@
+#Redução de dados do Hubble
+
+Objetivo: Aqui será feita a redução preliminar das imagens obtidas pelo HST.
+O objetivo é obter os arcos gravitacionais da galáxia ESO325 para então subtraí-los da banda F814w original. Essa imagem sem os arcos gravitacionais será usada como input para a construção do modelo dinâmico feito a partir do código JAM.
+
+Está redução foi feita em cima das imagens originais, ou seja, não houve a necessidade de rotacionar a galáxia para que o seu semi-eixo maior coincidisse com o eixo dos x. Para contornar esse problema, nós mantivemos a imagem intocada, mas rotacionamos a equação da elipse. 
+
+Data: Imagens obtidas com o telescópio Hubble com o instrumento ACS/WFC3 nas bandas F814W e F475W. Ambas pré-reduzidas e combinadas pelo Astrodrizzle Pac para se obter imagens do tipo Mosaic. 
+					**As unidades em cada imagem são counts/s.**
+
+Pacotes Python utilizados: MPDAF, Astropy, numpy, matplotlib, Astroalign, pandas
+
+Considerações gerais:
+
+A pasta Codes contém os códigos necessários para os passos abaixos.
+A pasta Data contém dos dados de entrada e saída de cada passo.
+A pasta Images contém imagens dos processos.
+
+Descrição:
+
+1°: Recorte e alinhamento. (Arquivo Cut, Registration, Centralization.ipynb)
+A ideia aqui é cortar as imagens originais de modo a termos apenas a galáxia principal em um arquivo .fits.
+
+Primeiramente é feito um corte com 50'' ao redor do centro da galáxia, de modo que tenhamos nessa imagem algumas fontes pontuais como estrelas e globulares. Isso será necessário para ajustar um possível offset entre as imagens F814w e F475.
+
+Com as imagens recortadas em 50'', aplicamos o código astroalign com o objetivo de ajustar qualquer offset entre as imagens. O código busca por fontes pontuais na imagem e então as alinha com base nessas fontes pontuais. Aqui usamos a imagems F814w como referência por ser uma imagem mais profunda.
+
+Uma vez que as imagens estejam alinhadas, realizamos um novo corte, desta vez com 30'' ao redor do centro da galáxia. Isso permite que tenhamos apenas a galáxia no arquivo .fits final.
+
+2°: Manipulando as imagens I. (Arquivo Manipulating Images.ipynb)
+Neste arquivo é onde ocorrem a maior parte das manipulações.
+Uma vez tendo as imagens recortadas e centralizadas, vamos criar uma imagem que é a razão entre as bandas F475w e F814w (F475w/F814w). A ideia é utilizar o contraste de cor das bandas para identificar os arcos gravitacionais.
+
+Neste arquivos começamos por normalizar as imagens por seu tempo de exposição (ESSE PASSO NÃO É NECESSÁRIO CASO AS IMAGENS JÁ VENHAM NORMALIZADAS). Com as imagens normalizadas tomamos a razão F475w/F814w e salvamos em outro arquivo .fits.
+
+3°: Criando o filtro. (Elliptical Profile.ipynb)
+Agora queremos gerar o 'filtro com base no contraste de cor', mas para isso devemos também levar em conta a elipticidade da galáxia. Por isso mais uma vez trabalhamos com a equação girada da elipse, de modo que os dados permanecem inalterados e giramos a equação apenas, fazendo com que o eixo x coincida com o semi-eixo maior da galáxia.
+
+Aplicamos o código para a imagem .fits F475w/F814w gerad anteriormente. Para cada raio elíptico calculamos a média e atribuímos esse valor a todos os pxs dentro deste raio. Isso gera outra imagem 'filtro' que leva em conta esse contraste de cor entre as bandas. O filtro é salva em um arquivo .fits.
+
+4°: Manipulando as imagens II. (Arquivo Manipulating Images.ipynb)
+Após obtermos a imagem filtro acima, voltamos ao arquivo para manipulação de imagens. A ideia agora é multiplicar o filtro por uma das bandas e subtrair essa imagem filtrada da outra banda.
+
+Multiplicamos então a imagem F814w pelo filtro. Isso 'elimina' a presença dos arcos nessa banda, enquanto que na imagem F475w os arcos permanecem com seu valor total. Então para obtermos uma imagem com apenas os arcos gravitacionais tomamos a diferença F475w - F814_filtrada. O resultado dessa subtração é uma imagem onde temos apenas a presença dos arcos e um pouco de ruído. Essa imagem é salva em um arquivo .fits
+
+5°: Filtrando apenas os arcos. (Arcs Filter.ipynb)
+A imagem dos arcos gerada anteriormente possui algum ruído que não queremos. Então agora vamos eliminar esse ruído e deixar apenas os arcos.
+
+Neste arquivo criamos uma máscara para todos os pontos internos e externos aos arcos gravitacionais, deixando apenas os pxs com a posição dos arcos com um valor positivo. Após isso, invertemos os valores, atribuindo valor zero a posição dos arcos e valor um a posição fora deles. O objetivo é poder multiplicar essa imagem pela imagem em alguma das bandas e desta forma excluir apenas os arcos. Essa imagem com os arcos 'negativos' é salva em um arquivo .fits
+
+6°: Produto Final. (Subtract Arcs and Interpolate.ipynb)
+Agora que possuímos um filtro para os arcos, queremos subtraí-los de uma banda e interpolar nesses pontos, de modo a termos uma imagem F814w ou F475w sem a presença dos arcos.
+
+Nesta etapa apenas multiplicamos o arquivo filtro .fits gerado no passo anterior pela imagem F814w (mais profunda e que queremos trabalhar) gerando uma imagem sem a presença dos arcos. Logo após esse passo, interpolamos a imagem onde o valor é zero (posição dos arcos) com uma interpolação cúbica. O resultado final é salvo como uma imagem .fits. Essa será a imagem utilizada para performar a fotometria com o Multi Gaussian Expansion.
+
