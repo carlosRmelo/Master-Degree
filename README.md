@@ -23,7 +23,7 @@ Para evitar qualquer tipo de incompatibilidade, é recomendado a que a versão d
     pip install package == version
 
 
-- `mpdaf <https://mpdaf.readthedocs.io/en/latest/>` v.3.4
+- `[mpdaf](https://mpdaf.readthedocs.io/en/latest/)` v.3.4
 - `numpy <https://numpy.org/doc/>` v.1.18.5
 - `scipy <https://www.scipy.org/>` v.1.5.2
 - `astropy <https://www.astropy.org/>` v.4.0.1
