@@ -1,0 +1,639 @@
+ Pixels used: 28051
+ Peak Img[j, k]: 374 374
+ Mean (j, k): 374.10 373.33
+ Theta (deg): 22.3
+ Astro PA (deg): 67.7
+ Eps: 0.237
+ Major axis (pix): 109.6
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Nonzero Gaussians: 5/7
+Eliminating not useful Gaussians...
+ngauss: 4           chi2: 6.48
+Starting nonlinear fit...
+Iteration: 1  chi2: 6.479  Nonzero: 4/4
+Iteration: 11  chi2: 1.78  Nonzero: 4/4
+Nonzero Gaussians: 4/4
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.15 seconds
+  Total Iterations:  3
+ Nonzero Gaussians:  4
+  Unused Gaussians:  3
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 1.779 
+ STDEV: 0.04586 
+ MEANABSDEV: 0.03337 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      4821.95      8.41447     0.846838
+      22431.7      24.6357     0.740515
+      41740.6      62.1344      0.74891
+       115627      177.839     0.834525
+++++++++++++++++++++++++++++++++++++++++++++
+(minloop) qbounds=0.0000 1.0000
+############################################
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Nonzero Gaussians: 5/7
+Eliminating not useful Gaussians...
+ngauss: 4           chi2: 6.48
+Starting nonlinear fit...
+Iteration: 1  chi2: 6.479  Nonzero: 4/4
+Iteration: 11  chi2: 1.78  Nonzero: 4/4
+Nonzero Gaussians: 4/4
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.14 seconds
+  Total Iterations:  3
+ Nonzero Gaussians:  4
+  Unused Gaussians:  3
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 1.779 
+ STDEV: 0.04586 
+ MEANABSDEV: 0.03337 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      4821.95      8.41447     0.846838
+      22431.7      24.6357     0.740515
+      41740.6      62.1344      0.74891
+       115627      177.839     0.834525
+++++++++++++++++++++++++++++++++++++++++++++
+(minloop) qbounds=0.0500 1.0000
+############################################
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Nonzero Gaussians: 5/7
+Eliminating not useful Gaussians...
+ngauss: 4           chi2: 6.48
+Starting nonlinear fit...
+Iteration: 1  chi2: 6.479  Nonzero: 4/4
+Iteration: 11  chi2: 1.78  Nonzero: 4/4
+Nonzero Gaussians: 4/4
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.14 seconds
+  Total Iterations:  3
+ Nonzero Gaussians:  4
+  Unused Gaussians:  3
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 1.779 
+ STDEV: 0.04586 
+ MEANABSDEV: 0.03337 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      4821.95      8.41447     0.846838
+      22431.7      24.6357     0.740515
+      41740.6      62.1344      0.74891
+       115627      177.839     0.834525
+++++++++++++++++++++++++++++++++++++++++++++
+(minloop) qbounds=0.1000 1.0000
+############################################
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Nonzero Gaussians: 5/7
+Eliminating not useful Gaussians...
+ngauss: 4           chi2: 6.48
+Starting nonlinear fit...
+Iteration: 1  chi2: 6.479  Nonzero: 4/4
+Iteration: 11  chi2: 1.78  Nonzero: 4/4
+Nonzero Gaussians: 4/4
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.13 seconds
+  Total Iterations:  3
+ Nonzero Gaussians:  4
+  Unused Gaussians:  3
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 1.779 
+ STDEV: 0.04586 
+ MEANABSDEV: 0.03337 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      4821.95      8.41447     0.846838
+      22431.7      24.6357     0.740515
+      41740.6      62.1344      0.74891
+       115627      177.839     0.834525
+++++++++++++++++++++++++++++++++++++++++++++
+(minloop) qbounds=0.1500 1.0000
+############################################
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Nonzero Gaussians: 5/7
+Eliminating not useful Gaussians...
+ngauss: 4           chi2: 6.48
+Starting nonlinear fit...
+Iteration: 1  chi2: 6.479  Nonzero: 4/4
+Iteration: 11  chi2: 1.78  Nonzero: 4/4
+Nonzero Gaussians: 4/4
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.13 seconds
+  Total Iterations:  3
+ Nonzero Gaussians:  4
+  Unused Gaussians:  3
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 1.779 
+ STDEV: 0.04586 
+ MEANABSDEV: 0.03337 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      4821.95      8.41447     0.846838
+      22431.7      24.6357     0.740515
+      41740.6      62.1344      0.74891
+       115627      177.839     0.834525
+++++++++++++++++++++++++++++++++++++++++++++
+(minloop) qbounds=0.2000 1.0000
+############################################
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Nonzero Gaussians: 5/7
+Eliminating not useful Gaussians...
+ngauss: 4           chi2: 6.48
+Starting nonlinear fit...
+Iteration: 1  chi2: 6.479  Nonzero: 4/4
+Iteration: 11  chi2: 1.78  Nonzero: 4/4
+Nonzero Gaussians: 4/4
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.13 seconds
+  Total Iterations:  3
+ Nonzero Gaussians:  4
+  Unused Gaussians:  3
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 1.779 
+ STDEV: 0.04586 
+ MEANABSDEV: 0.03337 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      4821.95      8.41447     0.846838
+      22431.7      24.6357     0.740515
+      41740.6      62.1344      0.74891
+       115627      177.839     0.834525
+++++++++++++++++++++++++++++++++++++++++++++
+(minloop) qbounds=0.2500 1.0000
+############################################
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Nonzero Gaussians: 5/7
+Eliminating not useful Gaussians...
+ngauss: 4           chi2: 6.48
+Starting nonlinear fit...
+Iteration: 1  chi2: 6.479  Nonzero: 4/4
+Iteration: 11  chi2: 1.78  Nonzero: 4/4
+Nonzero Gaussians: 4/4
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.13 seconds
+  Total Iterations:  3
+ Nonzero Gaussians:  4
+  Unused Gaussians:  3
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 1.779 
+ STDEV: 0.04586 
+ MEANABSDEV: 0.03337 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      4821.95      8.41447     0.846838
+      22431.7      24.6357     0.740515
+      41740.6      62.1344      0.74891
+       115627      177.839     0.834525
+++++++++++++++++++++++++++++++++++++++++++++
+(minloop) qbounds=0.3000 1.0000
+############################################
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Nonzero Gaussians: 5/7
+Eliminating not useful Gaussians...
+ngauss: 4           chi2: 6.48
+Starting nonlinear fit...
+Iteration: 1  chi2: 6.479  Nonzero: 4/4
+Iteration: 11  chi2: 1.78  Nonzero: 4/4
+Nonzero Gaussians: 4/4
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.13 seconds
+  Total Iterations:  3
+ Nonzero Gaussians:  4
+  Unused Gaussians:  3
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 1.779 
+ STDEV: 0.04586 
+ MEANABSDEV: 0.03337 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      4821.95      8.41447     0.846838
+      22431.7      24.6357     0.740515
+      41740.6      62.1344      0.74891
+       115627      177.839     0.834525
+++++++++++++++++++++++++++++++++++++++++++++
+(minloop) qbounds=0.3500 1.0000
+############################################
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Nonzero Gaussians: 5/7
+Eliminating not useful Gaussians...
+ngauss: 4           chi2: 6.48
+Starting nonlinear fit...
+Iteration: 1  chi2: 6.479  Nonzero: 4/4
+Iteration: 11  chi2: 1.78  Nonzero: 4/4
+Nonzero Gaussians: 4/4
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.14 seconds
+  Total Iterations:  3
+ Nonzero Gaussians:  4
+  Unused Gaussians:  3
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 1.779 
+ STDEV: 0.04586 
+ MEANABSDEV: 0.03337 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      4821.95      8.41447     0.846838
+      22431.7      24.6357     0.740515
+      41740.6      62.1344      0.74891
+       115627      177.839     0.834525
+++++++++++++++++++++++++++++++++++++++++++++
+(minloop) qbounds=0.4000 1.0000
+############################################
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Nonzero Gaussians: 5/7
+Eliminating not useful Gaussians...
+ngauss: 4           chi2: 6.48
+Starting nonlinear fit...
+Iteration: 1  chi2: 6.479  Nonzero: 4/4
+Iteration: 11  chi2: 1.78  Nonzero: 4/4
+Nonzero Gaussians: 4/4
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.13 seconds
+  Total Iterations:  3
+ Nonzero Gaussians:  4
+  Unused Gaussians:  3
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 1.779 
+ STDEV: 0.04586 
+ MEANABSDEV: 0.03337 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      4821.95      8.41447     0.846838
+      22431.7      24.6357     0.740515
+      41740.6      62.1344      0.74891
+       115627      177.839     0.834525
+++++++++++++++++++++++++++++++++++++++++++++
+(minloop) qbounds=0.4500 1.0000
+############################################
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Nonzero Gaussians: 5/7
+Eliminating not useful Gaussians...
+ngauss: 4           chi2: 6.48
+Starting nonlinear fit...
+Iteration: 1  chi2: 6.479  Nonzero: 4/4
+Iteration: 11  chi2: 1.78  Nonzero: 4/4
+Nonzero Gaussians: 4/4
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.14 seconds
+  Total Iterations:  3
+ Nonzero Gaussians:  4
+  Unused Gaussians:  3
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 1.779 
+ STDEV: 0.04586 
+ MEANABSDEV: 0.03337 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      4821.95      8.41447     0.846838
+      22431.7      24.6357     0.740515
+      41740.6      62.1344      0.74891
+       115627      177.839     0.834525
+++++++++++++++++++++++++++++++++++++++++++++
+(minloop) qbounds=0.5000 1.0000
+############################################
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Nonzero Gaussians: 5/7
+Eliminating not useful Gaussians...
+ngauss: 4           chi2: 6.48
+Starting nonlinear fit...
+Iteration: 1  chi2: 6.479  Nonzero: 4/4
+Iteration: 11  chi2: 1.78  Nonzero: 4/4
+Nonzero Gaussians: 4/4
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.13 seconds
+  Total Iterations:  3
+ Nonzero Gaussians:  4
+  Unused Gaussians:  3
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 1.779 
+ STDEV: 0.04586 
+ MEANABSDEV: 0.03337 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      4821.95      8.41447     0.846838
+      22431.7      24.6357     0.740515
+      41740.6      62.1344      0.74891
+       115627      177.839     0.834525
+++++++++++++++++++++++++++++++++++++++++++++
+(minloop) qbounds=0.5500 1.0000
+############################################
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Nonzero Gaussians: 5/7
+Eliminating not useful Gaussians...
+ngauss: 4           chi2: 6.48
+Starting nonlinear fit...
+Iteration: 1  chi2: 6.479  Nonzero: 4/4
+Iteration: 11  chi2: 1.78  Nonzero: 4/4
+Nonzero Gaussians: 4/4
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.13 seconds
+  Total Iterations:  3
+ Nonzero Gaussians:  4
+  Unused Gaussians:  3
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 1.779 
+ STDEV: 0.04586 
+ MEANABSDEV: 0.03337 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      4821.95      8.41447     0.846838
+      22431.7      24.6357     0.740515
+      41740.6      62.1344      0.74891
+       115627      177.839     0.834525
+++++++++++++++++++++++++++++++++++++++++++++
+(minloop) qbounds=0.6000 1.0000
+############################################
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Nonzero Gaussians: 7/7
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.13 seconds
+  Total Iterations:  8
+ Nonzero Gaussians:  7
+  Unused Gaussians:  0
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 0.967 
+ STDEV: 0.03383 
+ MEANABSDEV: 0.01628 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      50.9385       0.9525     0.882333
+      203.585      3.59204     0.861277
+      2934.03      8.48312     0.903389
+      8461.05      16.0926     0.746402
+      22195.2      32.2108     0.747407
+      36444.9      68.0327     0.744202
+       114393      177.839     0.840799
+++++++++++++++++++++++++++++++++++++++++++++
+(minloop) qbounds=0.6500 1.0000
+############################################
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Iteration: 11  chi2: 0.9633  Nonzero: 7/7
+Nonzero Gaussians: 7/7
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.18 seconds
+  Total Iterations:  13
+ Nonzero Gaussians:  7
+  Unused Gaussians:  0
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 0.9623 
+ STDEV: 0.03375 
+ MEANABSDEV: 0.016 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      58.1515       0.9525     0.872825
+      445.251      4.77207     0.868724
+      4426.99      9.91478     0.876925
+      8481.74      18.8596     0.711937
+      21054.7       33.219     0.756781
+      35917.3      68.6256     0.741537
+       114309      177.839     0.841399
+++++++++++++++++++++++++++++++++++++++++++++
+(minloop) qbounds=0.7000 1.0000
+############################################
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Iteration: 11  chi2: 2.138  Nonzero: 7/7
+Nonzero Gaussians: 7/7
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.29 seconds
+  Total Iterations:  18
+ Nonzero Gaussians:  7
+  Unused Gaussians:  0
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 0.9689 
+ STDEV: 0.03386 
+ MEANABSDEV: 0.01614 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      57.1648       0.9525     0.870193
+      221.525      4.02755     0.849886
+      3018.29      8.54282       0.8905
+      8866.39      16.5222         0.75
+      21848.7      32.5168         0.75
+      36278.8      67.8822         0.75
+       114367      177.839     0.840317
+++++++++++++++++++++++++++++++++++++++++++++
+(minloop) qbounds=0.7500 1.0000
+############################################
+Iteration: 1  chi2: 32.38  Nonzero: 6/7
+Nonzero Gaussians: 7/7
+Eliminating not useful Gaussians...
+ngauss: 6           chi2: 2.45
+Starting nonlinear fit...
+Iteration: 1  chi2: 2.449  Nonzero: 6/6
+Iteration: 11  chi2: 1.401  Nonzero: 6/6
+Nonzero Gaussians: 6/6
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.18 seconds
+  Total Iterations:  3
+ Nonzero Gaussians:  6
+  Unused Gaussians:  1
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 1.401 
+ STDEV: 0.04071 
+ MEANABSDEV: 0.02595 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+       79.621      1.16564     0.828411
+      1667.14      6.82842     0.856822
+       9281.1      14.3584          0.8
+      22187.4      30.5616          0.8
+      36467.4      64.7718          0.8
+       114658      177.839      0.83329
+++++++++++++++++++++++++++++++++++++++++++++
+(minloop) qbounds=0.8000 1.0000
+############################################
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Iteration: 11  chi2: 2.138  Nonzero: 7/7
+Nonzero Gaussians: 7/7
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.28 seconds
+  Total Iterations:  18
+ Nonzero Gaussians:  7
+  Unused Gaussians:  0
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 0.9689 
+ STDEV: 0.03386 
+ MEANABSDEV: 0.01614 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      57.1648       0.9525     0.870193
+      221.525      4.02755     0.849886
+      3018.29      8.54282       0.8905
+      8866.39      16.5222         0.75
+      21848.7      32.5168         0.75
+      36278.8      67.8822         0.75
+       114367      177.839     0.840317
+++++++++++++++++++++++++++++++++++++++++++++
+(maxloop) qbounds=0.7500 0.9500
+############################################
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Iteration: 11  chi2: 2.138  Nonzero: 7/7
+Nonzero Gaussians: 7/7
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.30 seconds
+  Total Iterations:  19
+ Nonzero Gaussians:  7
+  Unused Gaussians:  0
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 0.9689 
+ STDEV: 0.03386 
+ MEANABSDEV: 0.01612 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      56.7094       0.9525     0.867432
+      204.707      3.93048     0.843635
+       3012.8      8.48439      0.89123
+      8973.83       16.561         0.75
+      21877.8      32.6315         0.75
+      36193.8      67.9944         0.75
+       114341      177.839     0.840469
+++++++++++++++++++++++++++++++++++++++++++++
+(maxloop) qbounds=0.7500 0.9000
+############################################
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Iteration: 11  chi2: 1.255  Nonzero: 7/7
+Nonzero Gaussians: 7/7
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.29 seconds
+  Total Iterations:  19
+ Nonzero Gaussians:  7
+  Unused Gaussians:  0
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 0.972 
+ STDEV: 0.03392 
+ MEANABSDEV: 0.01644 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      57.9964       0.9525         0.85
+      314.146      4.40623         0.85
+      3801.27      9.42962         0.85
+      8777.57      17.6292         0.75
+      21327.1       33.051         0.75
+      36038.8      68.0644         0.75
+       114340      177.839     0.840429
+++++++++++++++++++++++++++++++++++++++++++++
+(maxloop) qbounds=0.7500 0.8500
+############################################
+Iteration: 1  chi2: 36.19  Nonzero: 6/7
+Iteration: 11  chi2: 1.259  Nonzero: 7/7
+Iteration: 21  chi2: 1.241  Nonzero: 7/7
+Nonzero Gaussians: 7/7
+Eliminating not useful Gaussians...
+All Gaussians are needed!
+############################################
+ Computation time: 0.35 seconds
+  Total Iterations:  25
+ Nonzero Gaussians:  7
+  Unused Gaussians:  0
+ Sectors used in the fit:  19
+ Total number of points fitted:  844
+ Chi2: 1.239 
+ STDEV: 0.03829 
+ MEANABSDEV: 0.01962 
+############################################
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      62.2761       0.9525          0.8
+      695.891      5.60275          0.8
+      5572.35      11.4016          0.8
+      6743.07      19.5054         0.75
+      19138.2      31.8848         0.75
+      35661.3      64.2165     0.755708
+       115233      177.839          0.8
+++++++++++++++++++++++++++++++++++++++++++++
+(maxloop) qbounds=0.7500 0.8000
+############################################
+############################################
+Final Regularized MGE Solution:
+  Total_Counts  Sigma_Pixels      qObs
+############################################
+      57.9964       0.9525         0.85
+      314.146      4.40623         0.85
+      3801.27      9.42962         0.85
+      8777.57      17.6292         0.75
+      21327.1       33.051         0.75
+      36038.8      68.0644         0.75
+       114340      177.839     0.840429
+++++++++++++++++++++++++++++++++++++++++++++
+Final qbounds=0.7500 0.8500
+############################################

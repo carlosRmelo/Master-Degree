@@ -1,0 +1,92 @@
+#MGE e JAM
+
+Objetivo: Agora que já possuímos a imagem F814w sem os arcos e já modelos a cinemática dos dados do MUSE, queremos construir o modelo dinâmico para a ESO325. Para isso é necessário resolver as equações de Jeans utilizando a densidade luminosa como traçador da dinâmica. Essa abordagem foi implementada de maneira eficiente em  Cappellari, M. (2020). (https://doi.org/10.1093/mnras/staa959) através da rotina JAM (ou jampy). Ela usa como dados de entrada além do das medidas de cinemática do MUSE medidas de fotometria. Essa fotometria deve ser feita utilizando o método de Multi Gaussian Expansion, apresentada em Cappellari, M. (2002). (https://doi.org/10.1046/j.1365-8711.2002.05412.x).
+O objetivo aqui então é: Primeiro construir o modelo MGE da galáxia baseando-se na imagem F814w sem os arcos.
+			  Segundo construir o modelo dinâmico JAM.
+			  
+Data; Imagem F814w sem os arcos.
+
+Pacotes Python: numpy, astropy, mgefit, matplotlib
+
+Considerações gerais:
+
+A pasta Codes contém todos os códigos necessários para os passos seguintes.
+A pasta Data contém os dados necessários.
+A pasta Imagens contém algumas imagens de saída.
+
+Descrição:
+
+1°: Multi Gaussian Expansion. (Arquivo MGE.py)
+
+NOTA 1: Atenção as unidades em que a imagem é fornecida. Caso a imagem venha normalizada (counts/s), devemos multiplicar a imagem pelo tempo de exposição OU ter cuidado ao realizar a transformação de constagens para brilho superficial nos passos seguintes.
+
+NOTA 2: Como informado no artigo que descreve o método MGE e nos próprios headers do código, após identificar os melhores parâmetros de ajuste, a versão final do ajuste deve ser rodada com o pacote mgefit.mge_fit_sectors_regularized. Para mais informações ver o header do mgefit original.
+
+NOTA 3: Essa etapa ainda carece de uma melhor estimativa da PSF. Por hora estamos usando o sigma de uma gaussiana que foi ajustada em uma estrela não saturada do campo.
+
+Agora vamos construir o modelo fotométrico MGE com a rotina mgefit by Cappellari.
+Após abrir a imagem já reduzida (banda F814w sem os arcos), é necessário informar a escala da imagem (px size), o valor do céu a ser subtraído, o valor mínimo para os dados da galáxia e a psf da imagem.
+
+O primeiro passo aqui é feito pelo Find My Galaxy. Essa rotina identifica o centro da galáxia, sua elipticidade e seu ângulo de rotação.
+O segundo passo é feito pelo Sectors Photometry, que separa a imagem em setores onde irá realizar o MGE.
+No terceiro passo feito pelo Fit Sectors temos de fato a fotometria feita pelo MGE. Nesta etapa temos o output principal, que retorna o pico de cada gaussiana, o sigma e o axial ratio. Essas informações são salvas numa tabela MGE Output.txt.
+Nos passos seguintes temos alguns plots apenas.
+
+Durante esse procedimento foi mascarada uma estrela saturada no campo, com o auxílio da função dist_circle, definida dentro do próprio arquivo.
+O arquivo ScreenOutput.txt possuí dados que são imprimidos na tela. Ele pode ser obtido ao rodar a rotina MGE.py da seguinte forma no terminal:
+						python MGE.py -> Nome_do_txt_de_saida.txt
+
+2°: Convertendo contagens para quantidades físicas. (Arquivo Convert MGE quantities to Physical quantities.ipynb)
+
+Uma vez feita a expansão MGE, precisamos converter esses valores para quantidades físicas que servirão de entrada para o JAM. A conversão de contagens do pico da gaussiana para brilho superficial está descrita em um arquivo presente na pasta mgefit do código original do Cappellari (readme_mge_fit_sectors.pdf). Usando aquela fórmula e as equações padrão de conversão, podemos obter os valores de brilho superficial em quantidades de L_sol/pc². 
+
+ATENÇÃO: Se a imagem fornecida ao passo anterior estava normalizada, antes de converter o pico de cada gaussiana para C_0 em counts/px é necessário multiplicar o pico de cada uma delas pelo tempo de exposição, de modo que o pico de cada gaussiana tenha unidade de counts e não counts/s. Caso a imagem do passo anterior não esteja normalizada, isso não é necessário.
+
+Uma vez convertido o pico de cada gaussiana para as unidades apropriadas, salvamos esses dados em uma tabela (JAM Input.txt) 
+
+3°: Perfil de DM. (Arquivo gNFW Collett.ipynb) 
+Para o modelo dinâmico estamos interessados em introduzir um perfil de matéria escura adicional. Isso é possível de ser feito parametrizando algum tipo de perfil NFW a partir de gaussianas, em um processo de MGE fit unidimensional. Neste arquivo procuramos fazer isso com um perfil gNFW (generalized-NFW) introduzido no artigo de Collett et al 2018.
+
+Os dados de entrada do perfil (alpha, rs e rho_0) foram estimadas pela tabela S3 do citado paper acima. A ideia é parametrizar esse modelo em gaussianas e depois adicionar essas gaussianas ao potencial do modelo JAM que será feito a seguir.
+
+Os dados dessa parametrização (pico das gaussianas, sigma, axial ratio) são salvas na tabela DM_profile.txt. As demais informações sobre a rotina está no próprio arquivo do código.
+
+NOTA: O arquivo test mg1fit.ipynb possui a parametrização de outro perfil gNFW, apresentado por Hongyu Li et al. 2016.
+
+4°: JAM. (Arquivo Jam.ipynb)
+Finalmente podemos construir o modelo dinâmico com o código jampy.
+
+Como o jampy requer que o semi-eixo maior da galáxia esteja sobre o eixo x e com o centro em (0,0), realizamos primeiro uma translação de modo que o px com maior dispersão esteja na posição (0,0). Após a translação, realizamos uma rotação baseada no ângulo de rotação determinado pelo mgefit anteriormente. Após esse processo, há a opção de selecionar apenas os px dentro de um certo raio. Essa selação leva em conta a elipticidade da galáxia.
+
+Finalmente chegamos no ajuste feito pelo jampy:
+xbin, ybin são a posição de cada px onde queremos calcular o modelo.
+inc é a inclinação na qual a galáxia deve ser deprojetada.
+r é o raio no plano do disco onde queremos calcular o modelo (útil se for usar goodbins).
+rms é a velocidade Vrms = np.sqrt(V² + \sigma²). Aqui estamos por hora assumindo que a velocidade é desprezível e 
+	podemos aproximar Vrms = \sigma. Unidades de Kms⁻¹
+erms é o erro na velocidade Vrms.
+distance é a distância até o objeto, em Mpc.
+mbh massa aproximada do buraco negro no centro da galáxia.
+beta é a anisotropia na velocidade, uma para cada gaussiana da fotometria.
+ml é o mass-to-light ratio, em M_sun/L_sun. Veja a nota ao final desta sessão para mais detalhes.
+surf_lum é a surface luminosity das gaussianas da fotometria, em unidades de L_sun/pc².
+sigma_lum dispersão de cada gaussiana da fotometria, em arcsec.
+qobs_lum axial ratio de cada gaussiana da fotometria.
+surf_pot é o o pico do surface potential de cada gaussiana que contribuí para o potencial, em M_sun/pc².
+sigma_pot é o sigma de cada gaussiana presente no surf_pot, em arcsec.
+qobs_pot é o axial ratio de cada gaussiana do potencial.
+sigma_psf é o sigma da psf (em arcsec) dos dados de cinemática.
+pxsize é o px scale (px/arcsec) de onde foram feitas as medidas d cinemática.
+goodbins informa onde será feito o ajuste.
+
+
+NOTA: 
+    Em um cenário auto-consistente,
+    surf_pot = surf_lum, sigma_pot = sigma_lum, qobs_pot = qObs_lum. Mas pode-se adicionar uma componente de 
+    matéria escura, de modo que as componentes do potencial terão as gaussianas da fotometria + gaussianas do DM.
+    Neste segundo caso, é necessário transformar os valores de luminosidade das surf_lum em valores de massa,
+    multiplicando cada gaussiana da surf_lum por um valor de ml. Após esse passo, podemos adicionar as componentes
+    de DM ao surf_pot. Quando é setado uma ml anterior, é necessário informar a função jam_axi_rms que ml=1. Isso
+    é necessário pois, caso não seja dado um ml ao chamar a função, ela irá calcular o melhor ml e escalonar a
+    solução da Vrms com base neste valor. Por outro lado, se ao chamar a função setamos ml=1, ela usa esse valor 1
+    para escalonar a solução, o que na prática não muda os resultados.

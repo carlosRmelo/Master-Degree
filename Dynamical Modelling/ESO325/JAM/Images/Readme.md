@@ -1,1 +1,0 @@
-Saidas dos códigos
