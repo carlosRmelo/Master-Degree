@@ -7,7 +7,7 @@ Para isso, será necessário resolver as equações de Jeans que descrevem a din
 
 O primeiro passo é obter um mapa cinemático da galáxia a partir dos espectros. Para isso é realizada a síntese espectral em cada spaxel do IFU. A síntese é feita utilizando o pacote **pPXF**, e a documentação e passos seguidos se encontram descritos na pasta correspondente. O resultado final obtido é um mapa com a dispersão de velocidades em cada spaxel, bem como a velocidade associada e o erro.
 
-    PS: A manipulação dos cubos de dados é, em grande parte facilitada pelo uso do pacote mpdaf.
+    PS: A manipulação dos cubos de dados é em grande parte facilitada pelo uso do pacote mpdaf.
 O passo seguinte seria construir o modelo dinâmico usando tanto dados do HST como o mapa de dispersão construído anteriormente. Contudo, nas imagens provenientes do HST (F814W) há a forte presença de arcos gravitacionais dentro do halo galático e que podem afetar o modelo dinâmico. Por essa razão se faz necessário reduzirmos novamente os dados fotométricos, de modo a eliminar o máximo possível a influência dos arcos na luz da galáxia lente.
 
 A remoção dos arcos, bem como a adequação da imagem para construção do modelo dinâmico se econtra na pasta HST DATA REDUCTION. Novamente, o passo a passo de cada etepa é descrito em um arquivo no interior da pasta e a partir de comentários ao longo dos códigos. Além disso, aproveitamos a oportunidade para explorar o contraste de cor entre as bandas F475w e F814w para detectar os arcos gravitacionais e remover a luz da galáxia lente, sendo possível desta forma obter uma imagem dos arcos sem a necessidade de assumir um perfil de luminosidade para  lente. Ao final de todos os processos desta pasta obtemos:
