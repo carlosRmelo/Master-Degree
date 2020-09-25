@@ -1,7 +1,0 @@
-phase=Russel_sie
-phase_tag=settings__grid_sub_2
-pipeline=
-pipeline_tag=
-dataset_name=datasetname=Russel_sie
-tag=settings__grid_sub_2
-non_linear_search=emcee
