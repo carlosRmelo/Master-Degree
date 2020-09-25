@@ -13,12 +13,12 @@ Nunca se esqueça de que parte da ciência reside na reprodutibilidade, por isso
 
 Perguntas ou sugestões?: carlos.melo@ufrgs.br
 
-__`PyAutoLens readthedocs <https://pyautolens.readthedocs.io/en/master/installation.html>`__.
+
 
 ### Versão dos Pacotes Utilizados
 Além dos pacotes principais responsáveis pelos modelamentos dinâmico e de lente, alguns pacotes adicionais devem estar instalados. Em geral, para os astrônomos e astrofísicos de plantão, esses pacotes já se encontram instalados. Mas caso não seja o seu caso, você deve instalá-los antes de começar a explorar as demais pastas.
 
-Para evitar qualquer tipo de incompatibilidade, é recomendado a que a versão desses pacotes seja a mesma especificada abaixo. As versões recomendadas podem ser facilmente instaladas via terminal com o comando __`pip <https://pip.pypa.io/en/stable/installing/>`__ da seguinte maneira:
+Para evitar qualquer tipo de incompatibilidade, é recomendado a que a versão desses pacotes seja a mesma especificada abaixo. As versões recomendadas podem ser facilmente instaladas via terminal com o comando __[pip](https://pip.pypa.io/en/stable/installing/)__ da seguinte maneira:
 
     pip install package == version
 
