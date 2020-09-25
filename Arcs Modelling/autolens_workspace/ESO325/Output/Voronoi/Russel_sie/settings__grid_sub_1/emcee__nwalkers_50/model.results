@@ -1,0 +1,45 @@
+Maximum Likelihood                                                                        62611.56014235
+
+Maximum Log Likelihood Model:
+
+galaxies
+    lens
+        mass
+            centre
+                centre_0                                                                  -0.125
+                centre_1                                                                  -0.178
+
+
+Median PDF model (3.0 sigma limits):
+
+galaxies
+    lens
+        mass
+            centre
+                centre_0                                                                  -0.135 (-0.163, -0.087)
+                centre_1                                                                  -0.147 (-0.203, -0.090)
+
+
+Median PDF model (1.0 sigma limits):
+
+galaxies
+    lens
+        mass
+            centre
+                centre_0                                                                  -0.135 (-0.141, -0.125)
+                centre_1                                                                  -0.147 (-0.149, -0.128)
+
+instances
+
+galaxies
+    lens
+        redshift                                                                          0.035
+        mass
+            elliptical_comps
+                elliptical_comps_0                                                        -0.11308392077239496
+                elliptical_comps_1                                                        0.11710182796210596
+            einstein_radius                                                               2.85
+    source
+        redshift                                                                          2.1
+        regularization
+            coefficient                                                                   8.0
