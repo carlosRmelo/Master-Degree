@@ -76,7 +76,7 @@ surf_pot é o o pico do surface potential de cada gaussiana que contribuí para 
 sigma_pot é o sigma de cada gaussiana presente no surf_pot, em arcsec.
 qobs_pot é o axial ratio de cada gaussiana do potencial.
 sigma_psf é o sigma da psf (em arcsec) dos dados de cinemática.
-pxsize é o px scale (px/arcsec) de onde foram feitas as medidas d cinemática.
+pxsize é o px scale (px/arcsec) de onde foram feitas as medidas de cinemática.
 goodbins informa onde será feito o ajuste.
 
 
