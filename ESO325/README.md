@@ -17,7 +17,7 @@ Os dados fotométricos para a galáxia ESO325 foram obtidos pelo telescópio Esp
 Os dados foram obtidos durante observações realizadas nos anos de 2005 e 2007 e contam com imagens em três diferentes bandas: F814W, F475W e F625W. Abaixo sumarizamos algumas informações:
 
 |Banda|Ano|Exp. Time (s)| Central wavelength (A)|
-|:--:|:--:|:--:|:--:|:--:|
+|:--:|:--:|:--:|:--:|
 |F814W|2007|18882|8128.69|
 |F475W|2007|3501|4801.57|
 |F625W|2007|4650|6352.58|
