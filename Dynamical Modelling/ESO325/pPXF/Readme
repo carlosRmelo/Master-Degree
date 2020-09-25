@@ -9,6 +9,14 @@ http://www.eso.org/observing/dfo/quality/PHOENIX/MUSE/processing.html .
 
 Pacotes Python utilizados: MPDAF, Ppxf, Sauron ColorMap.
 
+Considerações gerais:
+A pasta Codes contém todos os códigos necessários para os passos abaixo.
+A pasta Data contém os dados .fits.
+A pasta Espectros contém dos espectros já binnadas como descritos no passo 2°.
+A pasta Figs contém algumas figuras da galáxia, mapa de dispersão e perfil.
+As pastas Spec Fit Milles contém os ajustes do pPXF para cada espectro, seguindo a nomenclatura descrita no passo 3°.
+
+
 Descrição dos passos:
 
 1°: Recorte do cubo de dados original. (Arquivo ESO 325.ipynb)
@@ -16,13 +24,15 @@ O cubo original foi cortado espacial e espectralmente usando tarefas do mpdaf pa
 sub-cubo. Isso reduz o tamanho do cubo e permite trabalhar melhor com ele. Além disso, o corte espacial foi feito para se modelar apenas a parte interna ao raio de Einstein. O corte em compriemento de onda é feito para se evitar linhas de absorção da atmosfera e outras emissões/absorções indesejadas. As descrições detalhadas escontran-se no paper citado acima. O resultado do recorte gera um novo cubo (corte.fits) de tamanho 577x30x30, com intervalo em comprimento de onda [4780A à 5500A].
 
 2°: Extração dos Espectros. (Arquivo Extração dos Espectros.ipynb)
-Após obter o sub-cubo acima, é necessário extrair o espectro em cada pixel. Como sugere o paper original, para aumentar a razão sinal ruído, os pixels foram binnados em 0.6arcsec pixels. Esse tipo de binnagem aglutina, a partir do primeiro pixel, os 0.6arcsec mais próximos e os transforma todos em um único pixel. Como o subcubo possui 30x30 pixels espaciais, temos um total de 900 pixels individuais espaçados em 0.200 arcsec/px (característica do equipamento). Já que a binnagem será feita em 0.6arcsec (equivalente à 3px), teremos ao final da binnagem um novo cubo com dimensão espacial 10x10, o que irá gerar 100 espectros individuais. A extração desses espectros foi feita com um loop no arquivo  Extração dos Espectros.ipynb e cada espectro salvo na pasta Espectros. Os espectros são salvos com o nome do seu pixel de origem. Por exemplo, o espectro extraído do pixel posição y = 2px e x= 3px é salvo com o nome 2x3.fits.
+Após obter o sub-cubo acima, é necessário extrair o espectro em cada pixel. Como sugere o paper original, para aumentar a razão sinal ruído, os pixels foram binnados em 0.6arcsec pixels. Esse tipo de binnagem aglutina, a partir do primeiro pixel, os 0.6arcsec mais próximos e os transforma todos em um único pixel. Como o subcubo possui 60x60 pixels espaciais, temos um total de 3600 pixels individuais espaçados em 0.200 arcsec/px (característica do equipamento). Já que a binnagem será feita em 0.6arcsec (equivalente à 3px), teremos ao final da binnagem um novo cubo com dimensão espacial 20x20, o que irá gerar 400 espectros individuais. A extração desses espectros foi feita com um loop no arquivo  Extração dos Espectros.ipynb e cada espectro salvo na pasta Espectros. Os espectros são salvos com o nome do seu pixel de origem. Por exemplo, o espectro extraído do pixel posição y = 2px e x= 3px é salvo com o nome 2x3.fits.
 Os espectros que são binnados e extraídos devem ser extraídos no formato soma(sum), pois isso aumenta o razão sinal ruído, que é nosso objetivo com a binnagem. A opção de extração com média(mean) não é a adquada para este caso.
 
 Nota sobre os espectros: Os espectros do MUSE possuem três extensões. A primeira delas "PRIMARY" possui em seu header as informações de quando o espectro foi obtido. A segunda extensão "DATA" possui os dados obtidos, e em seu header possui as informações sobre os dados. A terceira extensão "STAT" possui a variância dos dados, e em seu header as informações sobre a variância.
 
 3°: Síntese Espectral. (Arquivo Ppxf(vários espectros.ipynb)
-Nesta etapa é realizada a síntese espectral com o código Ppxf do Cappellari. O código está bem descrito e seu artigo de 2017 (doi 10.1093/mnras/stw3020) e encontra-se disponível em https://www-astro.physics.ox.ac.uk/~mxc/software/#ppxf . O código disponível no link acima realiza, como exemplo, a síntese para apenas um espectro, ele foi adaptado por mim para realizar a síntese em vários espectros (Ppxf(vários espectros.ipynb), e o código encontra-se com comentários. Ao final da execução, ele gera e salva uma tabela (Output_Ppxf.txt) com as quatro colunas. A primeira é a posição y do pixel, a segunda é a posição x do pixel, a terceira a velocidade associada a este espectro e a quarta a dispersão.
+Nesta etapa é realizada a síntese espectral com o código Ppxf do Cappellari. O código está bem descrito e seu artigo de 2017 (doi 10.1093/mnras/stw3020) e encontra-se disponível em https://www-astro.physics.ox.ac.uk/~mxc/software/#ppxf . O código disponível no link acima realiza, como exemplo, a síntese para apenas um espectro, ele foi adaptado para realizar a síntese em vários espectros (Ppxf(vários espectros.ipynb), e o código encontra-se com comentários. Ao final da execução, ele gera e salva uma tabela (Output_Ppxf.txt) com as quatro colunas. A primeira é a posição y do pixel, a segunda é a posição x do pixel, a terceira a velocidade, na quarta dispersão, quinta coluna o chi²/dof e na quinta 1-sigma erro calculado seguindo comentários do prórpio header do pPXF.
+
+Nesta etapa também adotamos um approach visto em (Barone et al. (2020). http://arxiv.org/abs/2006.00720). A ideia é rodar o pPXF uma primeira vez e salvar seus resultados (Output_Ppxf Frist Run.txt) conforme descrito acima. Então, utilizar o chi²/dof dessa primeira iteração como uma maneira de reescalar a variancia de cada espectro numa segunda iteração, garantidndo assim um segundo chi²/dof ~ 1. Essa segunda iteração é salva no arquivo (Output_Ppxf Second Run.txt) no mesmo formato descrito anteriormente.
 
 Apenas alguns comentários sobre o Ppxf: 
 A variância é igual ao sigma² (desvio padrão ao quadrado).
@@ -31,8 +41,19 @@ pp.sol() possui as informações sobre o melhor ajuste do Ppxf, sendo portanto u
 
 O código trabalha no espaço de comprimento de onda logaritmizado, de modo que é necessário informar o comprimento de onda já nestas unidades, ou utilizar a tarefa log_rebin (como é feito aqui). Deve-se atentar que a variância deve sofrer o mesmo processo.
 
-Aqui optou-se por não utilizar a tarefa goodpixels. A tarefa seleciona os melhores pixels para o ajuste, mascarando desta forma algumas possíveis linhas de emissão.
 
 4°: Mapa de Dispersão. (Arquivo DisMap.ipynb)
 Nesta etapa é gerado o mapa de dispersão. Para tal, foi utilizada a o pacote Sauron ColorMap, disponível em https://www-astro.physics.ox.ac.uk/~mxc/software/ . O código deve receber três arrays, todos com mesmo tamanho. Um deles com a posição x de cada px, um com a posição y de cada px e um com o valor do px. Neste caso, foi lida a tabela gerada acima e informamos a posição x, y o e valor da dispersão de velocidades em cada posição (x,y). Outros dois tipos de interpolação também foram feitas para que se pudesse comparar. Deve-se notar que, mesmo os mapas não sendo exatemente iguais aos encontrado no artigo de Collet et al., os valores concordam entre si e a região central possui o mesmo tamanho, cerca de 2arcsec (para isso, lembre que cada px do nosso plot possui 0.6arcsec, já que foi binnado desta forma na etapa 2.
+
+(Antes de realizar o próximo passo é necessário criar um grid vazio .fits com o código Create New .fits grids.ipynb)
+Nesta etapa também salvamos a dispersão e seu 1-sigma erro em um arquivo .fits chamado Velocity Dispersion map ----.fits, em que ----- representa a frist ou second run. Na primeira extensão temos a dispersão de velocidades em km/s e na segunda o 1-sigma erro.
+
+5°: Perfil Eliptico. (Arquivo Elliptical Profile p-p Rotate Equation.ipynb)
+Nosso objetivo agora é gerar um perfil eliptico de dispersão de velocidades. A ideia é calcular as dispersões em 'raios' elípticos, mas ao ao invés de calcular em 'raios' , medidos a distância do ponto central até o ponto onde medidos a dispersão, e então plotamos esse perfil ponto a ponto, mas levando em conta a elipticidade da galáxia.
+Para levar em conta a elipticidade, primeiro é medido o ângulo de inclinação e a elipticidade da galáxia com o auxílio do código Find My Galaxy do Cappellari (mais detalhes são vistos no README do MGE e JAM). Uma vez determinadas a inclinação da galáxia e a elipticidade, a equação da elipse é girada para termos o semi eixo maior coincidindo com o semi eixo maior da galáxia, e então calculamos as distâncias ponto a ponto, mantendo as dispersões intáctas.
+Mais detalhes são vistos no próprio arquivo. 
+Os dados com a posição (arcsec), erro e dispersão de velocidades é salvo  no arquivo Elliptical Profile.txt.
+
+
+
 
