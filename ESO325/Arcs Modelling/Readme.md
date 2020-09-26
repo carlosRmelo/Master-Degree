@@ -19,7 +19,8 @@ Ao copiar esta versão do documento **total_mass_profiles.py** para dentro do di
 
 Além de adiconar essa "nova versão" dos perfis de massa, é necessário informar ao arquivo **__init__.py** presente no diretório **/mass profiles** que uma nova classe está disponível. Isso é feito adicionando o nome **MGE** à função __.total_mass_profiles()__ presente dentro do arquivo **__init__.py** , como pode-se ver na imagem abaixo:
 
-![Inclusão da classe **MGE** ao **__init__.py** presente no diretório **path-where-installed-autolens/autogalaxy/profiles/mass_profiles**](init__total mass__.png", **__init__.py**")
+![Inclusão da classe **MGE** ao **__init__.py** presente no diretório **path-where-installed-autolens/autogalaxy/profiles/mass_profiles**](init-mass-profiles.png "**__init__.py**")
+
 
 As demais recomendações de como se deve fazer uso do Pyautolens estão em sua própria documentação. Mas atenção, ao setar o caminho para o autolens_workspace você deve setar para o autolens_workspace presente neste diretório e não aquele disponível no github do James. Isso porque alguns arquivos de configuaração precisaram ser alterados para que a classe **MGE** fosse aceita. Em particular, foi necessária a inclusão da classe **MGE** no arquivo **radial_minimum.ini**, presente no diretório **autolens_workspace/config/grids**.
 
