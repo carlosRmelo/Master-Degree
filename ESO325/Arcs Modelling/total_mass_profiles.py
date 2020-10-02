@@ -206,7 +206,7 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
 
 
 
-    def MGE_Grid_parameters(self, grid):
+    def MGE_Grid_parameters(self, grid, quiet=None):
         """
             Cria um array com as seguintes propriedades:
             Cada linha do array terá 5 vetores representando os parâmetros necessários para o cálculo do ângulo de deflexão.
@@ -246,8 +246,12 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
 
         #Class parameter
         self.Grid_parameters = Grid_parameters
+        
+        if quiet is not None:
+            print("Pyautolens MGE Class successfully initialized!!")
+        
 
-        return print("Pyautolens MGE Class successfully initialized!!")
+        return 
 
 
 
