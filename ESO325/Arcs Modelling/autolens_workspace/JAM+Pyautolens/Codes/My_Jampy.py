@@ -23,7 +23,7 @@ class Jam_axi_rms():
     def __init__(self, ybin, xbin, rms, erms, sigmapsf, pixsize, inc,
                      distance, mbh, surf_lum, sigma_lum, qobs_lum,
                      surf_DM=None, sigma_DM=None, qobs_DM=None,
-                     beta=None, ml=None, goodBins=None, norm=None):
+                     beta=None, ml=None, goodBins=None, norm=None, quiet=None):
         """
         Class wrapper from jampy_axis_rms code by Michele Cappellari.
         Check his code for more details, and also the original papers:
@@ -211,7 +211,8 @@ class Jam_axi_rms():
         self.goodBins = goodBins
         self.norm = norm
 
-        print("Jampy Class successfully initialized!!")
+        if quiet is not None:
+        	print("Jampy Class successfully initialized!!")
 
     def Updt_parameters(self, surf_DM, qobs_DM, ml, beta, mbh, inc):
 
