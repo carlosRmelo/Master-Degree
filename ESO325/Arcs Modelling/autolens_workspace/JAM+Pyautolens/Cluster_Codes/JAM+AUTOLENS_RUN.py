@@ -12,7 +12,8 @@ from model_data import Global_Parameters as GP
 from model_data import Jampy_data as JP_data
 from model_data import Autolens_data as AL_data
 import emcee_probabilities
-from emcee_probabilities import Probability 
+from emcee_probabilities import Probability
+from emcee_probabilities import prior 
 
 #MPI packages and control paralelization
 from time import perf_counter as clock
@@ -111,6 +112,7 @@ np.savetxt("LogFile_LastFit.txt", np.column_stack([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
 #Initializing the probabilities
 model = Probability(Jampy_Model=Jampy_Model, mass_profile=mass_profile, masked_imaging=masked_imaging)
+
 
 with MPIPool() as pool:
     if not pool.is_master():
