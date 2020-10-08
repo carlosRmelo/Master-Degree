@@ -1,4 +1,3 @@
 # Iteration	 Mean acceptance fraction	 Processing Time
 	0	 0.000000e+00			 0.000000e+00	 
-	2	 1.900000e-01			 9.153787e+02	 
-	4	 1.600000e-01			 1.502639e+03	 
+	2	 1.900000e-01			 2.958441e+02	 

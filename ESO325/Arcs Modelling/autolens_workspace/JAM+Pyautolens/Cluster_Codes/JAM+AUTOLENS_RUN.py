@@ -40,7 +40,6 @@ import astropy.units as u
 workspace_path = str(here())
 #print("Workspace Path: ", workspace_path)
 
-
 #--------------------------------------------------------------------------------------------------------#
 # JAMPY MODEL
 
@@ -122,24 +121,24 @@ with MPIPool() as pool:
     np.random.seed(42)
     
     #Defining initial guesses
-
-    ml = np.zeros((50,6))
+    nwalkers = 50
+    ml = np.zeros((nwalkers,6))
     ml[:] = np.array([9.5,8.5,3.8,3.4,3.2,2.8])
-    ml_noise = np.random.rand(50,6)
+    ml_noise = np.random.rand(nwalkers,6)
 
-    beta = np.zeros((50,7))
+    beta = np.zeros((nwalkers,7))
     beta[:] = np.array([-0.6, -1.0, 0.34, -3.4, 0.39, -0.31, 0.36])
-    beta_noise = np.random.rand(50,7)
+    beta_noise = np.random.rand(nwalkers,7)
 
     ml = ml + ml_noise                                                               #Between [2.8, 10.5]
     beta = beta + beta_noise                                                         #Between [-3.4, 1.39]
-    inc = prior ['inc'][0] + (np.random.rand(50,1) -0.5)*10                          #Between [85, 95]
-    qDM = np.random.rand(50,1)*0.74+0.26                                             #Between [0.26, 1]
-    log_rho_s = np.random.rand(50,1)*prior['log_rho_s'][0]                           #Between [0, 10]
-    log_mbh =  np.random.rand(50,1)+9.0                                              #Between [9.0, 10]
-    mag_shear = (np.random.rand(50,1) - 0.5)*0.2                                     #Between [-0.1, 0.1]
-    phi_shear = (np.random.rand(50,1) - 0.5)*0.2                                     #Between [-0.1, 0.1]
-    gamma = (np.random.rand(50,1) - 0.5)*2                                           #Between [-1, 1]
+    inc = prior ['inc'][0] + (np.random.rand(nwalkers,1) -0.5)*10                          #Between [85, 95]
+    qDM = np.random.rand(nwalkers,1)*0.74+0.26                                             #Between [0.26, 1]
+    log_rho_s = np.random.rand(nwalkers,1)*prior['log_rho_s'][0]                           #Between [0, 10]
+    log_mbh =  np.random.rand(nwalkers,1)+9.0                                              #Between [9.0, 10]
+    mag_shear = (np.random.rand(nwalkers,1) - 0.5)*0.2                                     #Between [-0.1, 0.1]
+    phi_shear = (np.random.rand(nwalkers,1) - 0.5)*0.2                                     #Between [-0.1, 0.1]
+    gamma = (np.random.rand(nwalkers,1) - 0.5)*2                                           #Between [-1, 1]
     #50 walkers in a 21-D space
     pos = np.append(ml, beta, axis=1)
     pos = np.append(pos, inc, axis=1)
@@ -159,7 +158,7 @@ with MPIPool() as pool:
     backend.reset(nwalkers, ndim)
     
     # Initialize the sampler
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, model.log_probability, backend=backend)
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, model.log_probability, backend=backend, pool=pool)
     
     max_n = 5
     
