@@ -249,6 +249,7 @@ class Probability():
 
 
     def log_probability(self, pars):
+        print("Entrou na log_probability")
         (m1, m2, m3, m4, m5, m6, b1, b2, b3, b4, b5, b6, b7,
             inc, qDM, log_rho_s, log_mbh, mag_shear, phi_shear, gamma) = pars
         
