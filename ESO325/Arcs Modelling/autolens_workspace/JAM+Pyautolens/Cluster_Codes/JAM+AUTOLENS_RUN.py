@@ -121,7 +121,7 @@ with MPIPool() as pool:
     np.random.seed(42)
     
     #Defining initial guesses
-    nwalkers = 50
+    nwalkers = 100
     ml = np.zeros((nwalkers,6))
     ml[:] = np.array([9.5,8.5,3.8,3.4,3.2,2.8])
     ml_noise = np.random.rand(nwalkers,6)
