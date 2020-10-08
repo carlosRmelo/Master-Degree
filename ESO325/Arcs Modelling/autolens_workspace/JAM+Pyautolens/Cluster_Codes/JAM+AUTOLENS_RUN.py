@@ -87,7 +87,7 @@ aplt.Imaging.subplot_imaging(
 mass_profile = al.mp.MGE(centre=(0.0, 0.0))                               #Defining the mass model
 mass_profile.MGE_comps(M=AL_data.Total_Mass.value, sigma=AL_data.Total_sigma_RAD.value, q=AL_data.Total_q_proj.value, z_l=GP.z_lens, z_s=GP.z_source)        #Input data
 
-mass_profile.MGE_Grid_parameters(masked_imaging.grid)               #Creating the parameter grid for the parallel calculation
+mass_profile.MGE_Grid_parameters(masked_imaging.grid, quiet=False)               #Creating the parameter grid for the parallel calculation
 
 #Lens Model
 lens_galaxy = al.Galaxy(                                            
