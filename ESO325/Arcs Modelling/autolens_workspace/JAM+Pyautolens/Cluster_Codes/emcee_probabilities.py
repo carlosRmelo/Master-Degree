@@ -263,5 +263,5 @@ class Probability():
             return -np.inf
         #calculating the log_priors
         lp = self.log_prior(parsDic)
-        
+        print("Modelo Aceito")
         return lp + self.Pyautolens_log_likelihood(parsDic) + self.JAM_log_likelihood(parsDic) 
