@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 
 from time import perf_counter as clock
 from multiprocessing import Pool
-from schwimmbad import MPIPool
 import time
 import os
 
@@ -479,126 +478,59 @@ def log_probability(pars):
 
 ##### For the initial guesses we will use the Collett's best fit with an addition of a random noise between 0 and 1. This allow us probe faster our code.
 
-
-np.savetxt('Output LogFile.txt', np.column_stack([0, 0, 0]),
-                            fmt=b'	%i	 %e			 %e	 ', 
-                            header="Output table for the combined model: Lens + Dynamic.\n Iteration	 Mean acceptance fraction	 Processing Time")
-
-np.savetxt("LogFile_LastFit.txt", np.column_stack([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,]),
-                            fmt=b'%e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	', 
-                            header="Iteration	 ML1/2	 ML3	 ML4	 ML5	 ML6	 ML7	 b1	 b2	 b3	 b4	 b5	 b6	 b7	 Inc	 qDM	 Logrho_s	 LogMBH	 MagShear	 PhiShear	 gamma")
-
-
-with MPIPool() as pool:
-    if not pool.is_master():
-        pool.wait()
-        sys.exit(0)
-        
-    np.random.seed(42)
+np.random.seed(42)
     
-    #Defining initial guesses
+#Defining initial guesses
 
-    ml = np.zeros((50,6))
-    ml[:] = np.array([9.5,8.5,3.8,3.4,3.2,2.8])
-    ml_noise = np.random.rand(50,6)
+ml = np.zeros((50,6))
+ml[:] = np.array([9.5,8.5,3.8,3.4,3.2,2.8])
+ml_noise = np.random.rand(50,6)
 
-    beta = np.zeros((50,7))
-    beta[:] = np.array([-0.6, -1.0, 0.34, -3.4, 0.39, -0.31, 0.36])
-    beta_noise = np.random.rand(50,7)
+beta = np.zeros((50,7))
+beta[:] = np.array([-0.6, -1.0, 0.34, -3.4, 0.39, -0.31, 0.36])
+beta_noise = np.random.rand(50,7)
 
-    ml = ml + ml_noise                                                               #Between [2.8, 10.5]
-    beta = beta + beta_noise                                                         #Between [-3.4, 1.39]
-    inc = prior ['inc'][0] + (np.random.rand(50,1) -0.5)*10                          #Between [85, 95]
-    qDM = np.random.rand(50,1)*0.74+0.26                                             #Between [0.26, 1]
-    log_rho_s = np.random.rand(50,1)*prior['log_rho_s'][0]                           #Between [0, 10]
-    log_mbh =  np.random.rand(50,1)+9.0                                              #Between [9.0, 10]
-    mag_shear = (np.random.rand(50,1) - 0.5)*0.2                                     #Between [-0.1, 0.1]
-    phi_shear = (np.random.rand(50,1) - 0.5)*0.2                                     #Between [-0.1, 0.1]
-    gamma = (np.random.rand(50,1) - 0.5)*2                                           #Between [-1, 1]
-    #50 walkers in a 21-D space
-    pos = np.append(ml, beta, axis=1)
-    pos = np.append(pos, inc, axis=1)
-    pos = np.append(pos, qDM, axis=1)
-    pos = np.append(pos, log_rho_s, axis=1)
-    pos = np.append(pos, log_mbh, axis=1)
-    pos = np.append(pos, mag_shear, axis=1)
-    pos = np.append(pos, phi_shear, axis=1)
-    pos = np.append(pos, gamma, axis=1)
+ml = ml + ml_noise                                                               #Between [2.8, 10.5]
+beta = beta + beta_noise                                                         #Between [-3.4, 1.39]
+inc = prior ['inc'][0] + (np.random.rand(50,1) -0.5)*10                          #Between [85, 95]
+qDM = np.random.rand(50,1)*0.74+0.26                                             #Between [0.26, 1]
+log_rho_s = np.random.rand(50,1)*prior['log_rho_s'][0]                           #Between [0, 10]
+log_mbh =  np.random.rand(50,1)+9.0                                              #Between [9.0, 10]
+mag_shear = (np.random.rand(50,1) - 0.5)*0.2                                     #Between [-0.1, 0.1]
+phi_shear = (np.random.rand(50,1) - 0.5)*0.2                                     #Between [-0.1, 0.1]
+gamma = (np.random.rand(50,1) - 0.5)*2                                           #Between [-1, 1]
+#50 walkers in a 21-D space
+pos = np.append(ml, beta, axis=1)
+pos = np.append(pos, inc, axis=1)
+pos = np.append(pos, qDM, axis=1)
+pos = np.append(pos, log_rho_s, axis=1)
+pos = np.append(pos, log_mbh, axis=1)
+pos = np.append(pos, mag_shear, axis=1)
+pos = np.append(pos, phi_shear, axis=1)
+pos = np.append(pos, gamma, axis=1)
 
-    nwalkers, ndim = pos.shape
+nwalkers, ndim = pos.shape
     
-    # Set up the backend
-    # Don't forget to clear it in case the file already exists
-    filename = "JAMPY+AUTOLENS-CLUSTER.h5"
-    backend = emcee.backends.HDFBackend(filename)
-    backend.reset(nwalkers, ndim)
+
+
+
+
+with Pool(7) as pool:
+    print("Início")
+    
+    print("Workers nesse job:", pool._processes)
     
     # Initialize the sampler
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, backend=backend)
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, pool=pool)
     
-    max_n = 5
-    
-    global_time = clock()
-    # We'll track how the average autocorrelation time estimate changes
-    index = 0
-    autocorr = np.empty(max_n)
-    
-    # This will be useful to testing convergence
-    old_tau = np.inf
-
-    # Now we'll sample for up to max_n steps
-    for sample in sampler.sample(pos, iterations=max_n, progress=True):
-        # Only check convergence every 2 steps
-        if sampler.iteration % 2:
-            continue
-
-        # Compute the autocorrelation time so far
-        # Using tol=0 means that we'll always get an estimate even
-        # if it isn't trustworthy
-        tau = sampler.get_autocorr_time(tol=0)
-        autocorr[index] = np.mean(tau)
-        index += 1
-
-
-
-        #Update a table output with acceptance
-        table = np.loadtxt("Output LogFile.txt")
-
-
-        iteration = sampler.iteration
-        accept = np.mean(sampler.acceptance_fraction)
-        total_time = clock() - global_time
-        upt = np.column_stack([iteration, accept, total_time])
-
-        np.savetxt('Output LogFile.txt', np.vstack([table, upt]),
-                                fmt=b'	%i	 %e			 %e	 ', 
-                                header="Iteration	 Mean acceptance fraction	 Processing Time")
-
-        #Update table output with last best fit
-        last_fit_table = np.loadtxt("LogFile_LastFit.txt")
-        flat_samples = sampler.get_chain()
-        values = []
-        for i in range(ndim):
-            mcmc = np.percentile(flat_samples[:, i], [16, 50, 84])
-            q = np.diff(mcmc)
-            values.append(mcmc[1])
-
-        values = np.array(values)
-        upt = np.append(iteration, values)
-
-        np.savetxt("LogFile_LastFit.txt", np.vstack([last_fit_table, upt]),
-                            fmt=b'%e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	', 
-                            header="Iteration	 ML1/2	 ML3	 ML4	 ML5	 ML6	 ML7	 b1	 b2	 b3	 b4	 b5	 b6	 b7	 Inc	 qDM	 Logrho_s	 LogMBH	 MagShear	 PhiShear	 gamma")
- 
-
-        # Check convergence
-        converged = np.all(tau * 100 < sampler.iteration)
-        converged &= np.all(np.abs(old_tau - tau) / tau < 0.01)
-        if converged:
-            break
-        old_tau = tau
-tau = sampler.get_autocorr_time()
-print(tau)
+    nsteps = 2
+    start = time.time()
+    sampler.run_mcmc(pos, nsteps, progress=True)
+    end = time.time()
+    print('\n')
+    print("Final")
+    multi_time = end - start
+    print("Multiprocessing took {0:.1f} seconds".format(multi_time))
     
     
 

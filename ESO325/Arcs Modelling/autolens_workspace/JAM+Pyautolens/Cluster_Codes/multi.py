@@ -124,7 +124,7 @@ nsteps = 2
 #Initializing the probabilities
 model = Probability(Jampy_Model=Jampy_Model, mass_profile=mass_profile, masked_imaging=masked_imaging)
 
-with Pool() as pool:
+with Pool(5) as pool:
     print("Início")
     
     print("Workers nesse job:", pool._processes)
