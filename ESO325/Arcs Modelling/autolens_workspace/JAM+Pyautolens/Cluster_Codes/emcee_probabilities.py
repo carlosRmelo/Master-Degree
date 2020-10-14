@@ -249,7 +249,7 @@ class Probability():
 
 
     def log_probability(self, pars):
-        print("Entrou na log_probability")
+        #print("Entrou na log_probability")
         (m1, m2, m3, m4, m5, m6, b1, b2, b3, b4, b5, b6, b7,
             inc, qDM, log_rho_s, log_mbh, mag_shear, phi_shear, gamma) = pars
         
@@ -263,5 +263,5 @@ class Probability():
             return -np.inf
         #calculating the log_priors
         lp = self.log_prior(parsDic)
-        print("Modelo Aceito")
+        #print("Modelo Aceito")
         return lp + self.Pyautolens_log_likelihood(parsDic) + self.JAM_log_likelihood(parsDic) 

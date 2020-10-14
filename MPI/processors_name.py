@@ -4,7 +4,7 @@ import time
 from multiprocessing import cpu_count
 
 ncpu = cpu_count()
-print("Número de cpus" ncpu)
+print("Número de cpus", ncpu)
 
 def f(x):
    print(multiprocessing.current_process().name)
