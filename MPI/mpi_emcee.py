@@ -32,7 +32,7 @@ with MPIPool() as pool:
 
     sampler = emcee.EnsembleSampler(nwalkers, ndim, log_prob, pool=pool)
     start = time.time()
-    sampler.run_mcmc(initial, nsteps)
+    sampler.run_mcmc(initial, nsteps,progress=True)
     end = time.time()
     print('\n')
     print("Final")
