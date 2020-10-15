@@ -7,7 +7,7 @@ import emcee
 import matplotlib.pyplot as plt
 
 from time import perf_counter as clock
-from multiprocessing import Pool
+from schwimmbad import MPIPool
 import time
 import os
 
@@ -19,7 +19,7 @@ import autolens as al
 import autolens.plot as aplt
 #print("Pyautolens version:", al.__version__)
 
-from pyprojroot import here
+#from pyprojroot import here
 import numpy as np
 
 from time import perf_counter as clock
@@ -28,10 +28,9 @@ from astropy.cosmology import Planck15 as cosmo
 from astropy.constants import G, M_sun, c
 import astropy.units as u
 
-workspace_path = str(here())
+#workspace_path = str(here())
 #print("Workspace Path: ", workspace_path)
 #------------------------------------------------------------------------------------#
-
 ## DATA
 
 #Lendo os dados de fotometria, DM halo e cinemática
@@ -202,19 +201,24 @@ Total_sigma_RAD = Total_sigma_ARC.to(u.rad)                                     
 #print(Total_Mass)
 
 ### __Reading simulated data__
+with MPIPool() as pool:
+    
+    if not pool.is_master():
+        pool.wait()
+        sys.exit(0)
+    #Isso garante que só uma imagem será aberta
+    #Paths
+    dataset_type = "JAM+Pyautolens"
+    dataset_name = "Data"
+    dataset_path = f"/home/carlos/Documents/GitHub/Master-Degree/ESO325/Arcs Modelling/autolens_workspace/{dataset_type}/{dataset_name}"
 
-#Paths
-dataset_type = "JAM+Pyautolens"
-dataset_name = "Data"
-dataset_path = f"/home/carlos/Documents/GitHub/Master-Degree/ESO325/Arcs Modelling/autolens_workspace/{dataset_type}/{dataset_name}"
-
-#Load data
-imaging = al.Imaging.from_fits(
-    image_path=f"{dataset_path}/arcs_resized.fits",
-    noise_map_path=f"{dataset_path}/noise_map_resized.fits",
-    psf_path=f"{dataset_path}/psf.fits",
-    pixel_scales=0.04,
-)
+    #Load data
+    imaging = al.Imaging.from_fits(
+        image_path=f"{dataset_path}/arcs_resized.fits",
+        noise_map_path=f"{dataset_path}/noise_map_resized.fits",
+        psf_path=f"{dataset_path}/psf.fits",
+        pixel_scales=0.04,
+    )
 
 #Load mask
 mask_custom = al.Mask.from_fits(
@@ -246,6 +250,7 @@ lens_galaxy = al.Galaxy(
         mass=mass_profile,
         shear=al.mp.ExternalShear(elliptical_comps=(0,0)),
     )
+
 
 #------------------------------------------------------------------------------------------------------------#
 #------------------------------------------------ EMCEE -----------------------------------------------------#
@@ -515,10 +520,16 @@ nwalkers, ndim = pos.shape
 
 
 
-with Pool(7) as pool:
+with MPIPool() as pool:
+    
+    if not pool.is_master():
+        pool.wait()
+        sys.exit(0)
+    
+
+    print("Workers nesse job:", pool.workers)
     print("Início")
     
-    print("Workers nesse job:", pool._processes)
     
     # Initialize the sampler
     sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, pool=pool)
