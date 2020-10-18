@@ -201,19 +201,13 @@ Total_sigma_RAD = Total_sigma_ARC.to(u.rad)                                     
 #print(Total_Mass)
 
 ### __Reading simulated data__
-with MPIPool() as pool:
-    
-    if not pool.is_master():
-        pool.wait()
-        sys.exit(0)
-    #Isso garante que só uma imagem será aberta
-    #Paths
-    dataset_type = "JAM+Pyautolens"
-    dataset_name = "Data"
-    dataset_path = f"/home/carlos/Documents/GitHub/Master-Degree/ESO325/Arcs Modelling/autolens_workspace/{dataset_type}/{dataset_name}"
 
-    #Load data
-    imaging = al.Imaging.from_fits(
+dataset_type = "JAM+Pyautolens"
+dataset_name = "Data"
+ dataset_path = f"/home/carlos/Documents/GitHub/Master-Degree/ESO325/Arcs Modelling/autolens_workspace/{dataset_type}/{dataset_name}"
+
+#Load data
+imaging = al.Imaging.from_fits(
         image_path=f"{dataset_path}/arcs_resized.fits",
         noise_map_path=f"{dataset_path}/noise_map_resized.fits",
         psf_path=f"{dataset_path}/psf.fits",

@@ -470,7 +470,7 @@ def log_probability(pars):
         return -np.inf
     #calculating the log_priors
     lp = log_prior(parsDic)
-    
+    print("entrou")
     return lp + Pyautolens_log_likelihood(parsDic) + JAM_log_likelihood(parsDic) 
     
 
@@ -558,7 +558,8 @@ with MPIPool() as pool:
         # Only check convergence every 2 steps
         if sampler.iteration % 2:
             continue
-
+        print("\n")
+        print("#################")
         # Compute the autocorrelation time so far
         # Using tol=0 means that we'll always get an estimate even
         # if it isn't trustworthy

@@ -11,6 +11,7 @@ from schwimmbad import MPIPool
 import time
 import os
 
+
 os.environ["OMP_NUM_THREADS"] = "1"
 
 #Autolens Model packages
@@ -474,53 +475,6 @@ def log_probability(pars):
     return lp + Pyautolens_log_likelihood(parsDic) + JAM_log_likelihood(parsDic) 
     
 
-##### For the initial guesses we will use the Collett's best fit with a gaussian ball error around it
-    ## variables tagged with <name>_std are the standard deviation of the parameter <name>.
-np.random.seed(42)   
-#Defining initial guesses
-
-ml = np.array([9.5,8.5,3.8,3.4,3.2,2.8])
-ml_std = np.ones(ml.shape)*np.array(prior['ml'][1])
-
-beta = np.array([-0.6, -1.0, 0.34, -3.4, 0.39, -0.31, 0.36])
-beta_std = np.ones(beta.shape)*np.array(prior['beta'][1])
-
-inc = np.array([90])
-inc_std = np.ones(inc.shape)*float(prior['inc'][1])
-
-qDM = np.array([0.74])
-qDM_std = np.ones(qDM.shape)*float(prior['qDM'][1])
-
-log_rho_s = np.array([2])
-log_rho_s_std = np.ones(log_rho_s.shape)*float(prior['log_rho_s'][1])
-
-log_mbh = np.array([10])
-log_mbh_std = np.ones(log_mbh.shape)*float(prior['log_mbh'][1])
-
-mag_shear = np.array([0.2])
-mag_shear_std = np.ones(mag_shear.shape)*float(prior['mag_shear'][1])
-
-phi_shear = np.array([0.1])
-phi_shear_std = np.ones(phi_shear.shape)*float(prior['phi_shear'][1])
-
-gamma = np.array([1])
-gamma_std = np.ones(gamma.shape)*float(prior['gamma'][1])
-
-##Here we append all the variables and stds in a single array.
-p0 = np.append(ml, beta)
-p0 = np.append(p0,[inc, qDM, log_rho_s, log_mbh, mag_shear, phi_shear, gamma])
-
-p0_std = np.append(ml_std, beta_std)
-p0_std = np.append(p0_std, [inc_std, qDM_std, log_rho_s_std, log_mbh_std, mag_shear_std, phi_shear_std, gamma_std])
-
-#Finally we initialize the walkers with a gaussian ball around the best Collet's fit.
-nwalkers = 200                                                  #Number of walkers
-pos = emcee.utils.sample_ball(p0, p0_std, nwalkers)             #Initial position of all walkers
-
-
-nwalkers, ndim = pos.shape
-
-print()
 
 
 np.savetxt('Output_LogFile.txt', np.column_stack([0, 0, 0]),
@@ -534,12 +488,58 @@ np.savetxt("LastFit.txt", np.column_stack([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
 
 
-
 with MPIPool() as pool:
     
     if not pool.is_master():
         pool.wait()
         sys.exit(0)
+
+        ##### For the initial guesses we will use the Collett's best fit with a gaussian ball error around it
+        ## variables tagged with <name>_std are the standard deviation of the parameter <name>.
+    np.random.seed(42)   
+    #Defining initial guesses
+
+    ml = np.array([9.5,8.5,3.8,3.4,3.2,2.8])
+    ml_std = np.ones(ml.shape)*np.array(prior['ml'][1])
+
+    beta = np.array([-0.6, -1.0, 0.34, -3.4, 0.39, -0.31, 0.36])
+    beta_std = np.ones(beta.shape)*np.array(prior['beta'][1])
+
+    inc = np.array([90])
+    inc_std = np.ones(inc.shape)*float(prior['inc'][1])
+
+    qDM = np.array([0.74])
+    qDM_std = np.ones(qDM.shape)*float(prior['qDM'][1])
+
+    log_rho_s = np.array([2])
+    log_rho_s_std = np.ones(log_rho_s.shape)*float(prior['log_rho_s'][1])
+
+    log_mbh = np.array([10])
+    log_mbh_std = np.ones(log_mbh.shape)*float(prior['log_mbh'][1])
+
+    mag_shear = np.array([0.2])
+    mag_shear_std = np.ones(mag_shear.shape)*float(prior['mag_shear'][1])
+
+    phi_shear = np.array([0.1])
+    phi_shear_std = np.ones(phi_shear.shape)*float(prior['phi_shear'][1])
+
+    gamma = np.array([1])
+    gamma_std = np.ones(gamma.shape)*float(prior['gamma'][1])
+
+    ##Here we append all the variables and stds in a single array.
+    p0 = np.append(ml, beta)
+    p0 = np.append(p0,[inc, qDM, log_rho_s, log_mbh, mag_shear, phi_shear, gamma])
+
+    p0_std = np.append(ml_std, beta_std)
+    p0_std = np.append(p0_std, [inc_std, qDM_std, log_rho_s_std, log_mbh_std, mag_shear_std, phi_shear_std, gamma_std])
+
+    #Finally we initialize the walkers with a gaussian ball around the best Collet's fit.
+    nwalkers = 200                                                  #Number of walkers
+    pos = emcee.utils.sample_ball(p0, p0_std, nwalkers)             #Initial position of all walkers
+
+
+    nwalkers, ndim = pos.shape
+
     
 
     print("Workers nesse job:", pool.workers)
@@ -553,9 +553,9 @@ with MPIPool() as pool:
     
     
      # Initialize the sampler
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, pool=pool, backend=backend,a=1)
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, pool=pool, backend=backend, a=1)
     
-    nsteps = 10
+    nsteps = 50000
 
      # We'll track how the average autocorrelation time estimate changes
     index = 0
@@ -567,11 +567,12 @@ with MPIPool() as pool:
     # Now we'll sample for up to max_n steps
     start = time.time()
     global_time = time.time()
-    for sample in sampler.sample(pos, iterations=nsteps, progress=True, skip_initial_state_check=True):
-        # Only check convergence every 2 steps
-        if sampler.iteration % 2:
+    for sample in sampler.sample(pos, iterations=nsteps, progress=True):
+        # Only check convergence every 100 steps
+        if sampler.iteration % 100:
             continue
-
+        print("\n")
+        print("##########################")
         # Compute the autocorrelation time so far
         # Using tol=0 means that we'll always get an estimate even
         # if it isn't trustworthy
@@ -587,7 +588,7 @@ with MPIPool() as pool:
 
         iteration = sampler.iteration
         accept = np.mean(sampler.acceptance_fraction)
-        total_time = clock() - global_time
+        total_time = time.time() - global_time
         upt = np.column_stack([iteration, accept, total_time])
 
         np.savetxt('Output_LogFile.txt', np.vstack([table, upt]),
