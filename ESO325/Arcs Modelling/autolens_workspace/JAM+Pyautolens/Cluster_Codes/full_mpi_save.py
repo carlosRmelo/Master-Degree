@@ -258,7 +258,7 @@ boundary = {'inc': [70, 120], 'beta': [-5, 5], 'ml': [0.5, 15], 'log_mbh':[7, 11
                }
 
 # parameter gaussian priors. [mean, sigma]
-prior = {'inc': [90, 10], 'beta': [0.0, 2], 'ml': [1.0, 5],'log_mbh':[8, 3], 'qDM': [0.5, 3e-1],
+prior = {'inc': [90, 10], 'beta': [0.0, 2], 'ml': [5.0, 5],'log_mbh':[8, 3], 'qDM': [0.5, 3e-1],
             'log_rho_s':[10, 4], 'mag_shear': [0, 0.1], 'phi_shear': [0, 0.1], 'gamma': [1.0, 0.5]
             }
 
@@ -385,7 +385,8 @@ def Updt_Pyautolens(parsDic):
     inc_model = np.deg2rad(parsDic['inc'])                          #Get new inclination in radians
     
     #Stellar parameters
-    Stellar_Mass_model = (Lum_star_dat*parsDic['ml']).value         #Updt the stellar mass 
+    ml_model = np.array([parsDic['ml'][0], parsDic['ml'][0], parsDic['ml'][1], parsDic['ml'][2], parsDic['ml'][3], parsDic['ml'][4], parsDic['ml'][5]])
+    Stellar_Mass_model = (Lum_star_dat*ml_model).value         #Updt the stellar mass 
     
     #DM parameters
     qDM_model = np.ones(qDM_dat.shape)*parsDic['qDM']                                              #Updt DM axial ratio 
@@ -409,10 +410,13 @@ def Updt_JAM(parsDic):
     qDM_model = np.ones(qDM_dat.shape)*parsDic['qDM']
     beta_model = np.array(parsDic['beta'])
     mbh_model = 10**parsDic['log_mbh']
+    ml_model = np.array([parsDic['ml'][0], parsDic['ml'][0], parsDic['ml'][1], parsDic['ml'][2], parsDic['ml'][3], parsDic['ml'][4], parsDic['ml'][5]])
+
+
     
     
     Jampy_Model.Updt_parameters(surf_DM=surf_DM_model, qobs_DM=qDM_model,
-                                beta=beta_model, ml=np.array(parsDic['ml']),
+                                beta=beta_model, ml=ml_model,
                                 inc=parsDic['inc'],mbh=10**parsDic['log_mbh'])
 
 def JAM_log_likelihood(parsDic):
@@ -461,7 +465,7 @@ def log_probability(pars):
     (m1, m2, m3, m4, m5, m6, b1, b2, b3, b4, b5, b6, b7,
          inc, qDM, log_rho_s, log_mbh, mag_shear, phi_shear, gamma) = pars
     
-    ml =  np.array([m1, m1, m2, m3, m4, m4, m6])
+    ml =  np.array([m1, m2, m3, m4, m5, m6])
     beta =  np.array([b1, b2, b3, b4, b5, b6, b7])
     parsDic = {'ml': ml, 'inc': inc, 'qDM': qDM, 'log_rho_s': log_rho_s, 'log_mbh': log_mbh,
                   'mag_shear': mag_shear, 'phi_shear': phi_shear, 'gamma': gamma, 'beta': beta}
@@ -537,6 +541,7 @@ with MPIPool() as pool:
     nwalkers = 200                                                  #Number of walkers
     pos = emcee.utils.sample_ball(p0, p0_std, nwalkers)             #Initial position of all walkers
 
+    pos = np.random.rand(200,20)
 
     nwalkers, ndim = pos.shape
 
@@ -553,7 +558,7 @@ with MPIPool() as pool:
     
     
      # Initialize the sampler
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, pool=pool, backend=backend, a=1)
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, pool=pool, backend=backend)
     
     nsteps = 50000
 
@@ -569,7 +574,7 @@ with MPIPool() as pool:
     global_time = time.time()
     for sample in sampler.sample(pos, iterations=nsteps, progress=True):
         # Only check convergence every 100 steps
-        if sampler.iteration % 100:
+        if sampler.iteration % 25:
             continue
         print("\n")
         print("##########################")
@@ -579,8 +584,7 @@ with MPIPool() as pool:
         tau = sampler.get_autocorr_time(tol=0)
         autocorr[index] = np.mean(tau)
         index += 1
-
-
+    
 
         #Update a table output with acceptance
         table = np.loadtxt("Output_LogFile.txt")
@@ -597,7 +601,7 @@ with MPIPool() as pool:
 
         #Update table output with last best fit
         last_fit_table = np.loadtxt("LastFit.txt")
-        flat_samples = sampler.get_chain()
+        flat_samples = sampler.get_chain(flat=True)
         values = []
         for i in range(ndim):
             mcmc = np.percentile(flat_samples[:, i], [16, 50, 84])
@@ -628,4 +632,5 @@ with MPIPool() as pool:
     print("Multiprocessing took {0:.1f} seconds".format(multi_time))
     
     
+
 
