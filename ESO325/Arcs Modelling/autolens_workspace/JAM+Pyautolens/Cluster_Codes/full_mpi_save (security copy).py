@@ -584,7 +584,7 @@ with MPIPool() as pool:
 
         #Update table output with last best fit
         last_fit_table = np.loadtxt("LastFit.txt")
-        flat_samples = sampler.get_chain()
+        flat_samples = sampler.get_chain(flat=True)
         values = []
         for i in range(ndim):
             mcmc = np.percentile(flat_samples[:, i], [16, 50, 84])
