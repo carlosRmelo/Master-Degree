@@ -1,4 +1,9 @@
-
+#################################################################################
+#                                                                               #
+#       Multiprocessing and Gaussian ML.                                        #            
+#       Gaussian ML have flat prior                                             # 
+#                                                                               #
+#################################################################################
 
 #General packages
 import numpy as np
@@ -7,7 +12,7 @@ import emcee
 import matplotlib.pyplot as plt
 
 from time import perf_counter as clock
-from schwimmbad import MPIPool
+from multiprocessing import Pool
 import time
 import os
 
@@ -562,11 +567,9 @@ np.savetxt("LastFit.txt", np.column_stack([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
 
 
-with MPIPool() as pool:
+with Pool(7) as pool:
     
-    if not pool.is_master():
-        pool.wait()
-        sys.exit(0)
+
 
         ##### For the initial guesses we will use the Collett's best fit with a gaussian ball error around it, except for the ML, which we use a gaussian ML
         ## variables tagged with <name>_std are the standard deviation of the parameter <name>.
@@ -621,7 +624,7 @@ with MPIPool() as pool:
     print(ndim)
     
 
-    print("Workers nesse job:", pool.workers)
+    print("Workers nesse job:", pool._processes)
     print("Início")
 
         # Set up the backend
@@ -632,7 +635,7 @@ with MPIPool() as pool:
     
     
      # Initialize the sampler
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_GaussianML, pool=pool, backend=backend, a=1)
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_GaussianML, pool=pool, backend=backend)
     
     nsteps = 50000
 
@@ -648,7 +651,7 @@ with MPIPool() as pool:
     global_time = time.time()
     for sample in sampler.sample(pos, iterations=nsteps, progress=True):
         # Only check convergence every 100 steps
-        if sampler.iteration % 100:
+        if sampler.iteration % 1:
             continue
         print("\n")
         print("##########################")
@@ -685,10 +688,9 @@ with MPIPool() as pool:
 
         values = np.array(values)
         upt = np.append(iteration, values)
-
         np.savetxt("LastFit.txt",np.vstack([last_fit_table, upt]),
                             fmt=b'%e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e', 
-                            header="Iteration	 ML0	 Delta	  b1	 b2	 b3	 b4	 b5	 b6	 b7	 Inc	 qDM	 Logrho_s	 LogMBH	 MagShear	 PhiShear	 gamma"))
+                            header="Iteration	 ML0	 Delta	  b1	 b2	 b3	 b4	 b5	 b6	 b7	 Inc	 qDM	 Logrho_s	 LogMBH	 MagShear	 PhiShear	 gamma")
  
 
         # Check convergence
