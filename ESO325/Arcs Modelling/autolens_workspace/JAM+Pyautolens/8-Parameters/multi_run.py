@@ -449,7 +449,7 @@ np.savetxt("LastFit.txt", np.column_stack([0, 0, 0, 0, 0, 0, 0, 0, 0]),
 
 
 
-with Pool(6) as pool:
+with Pool() as pool:
 
 
 
