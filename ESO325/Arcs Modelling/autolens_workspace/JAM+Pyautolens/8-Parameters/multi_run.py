@@ -209,7 +209,7 @@ Total_sigma_RAD = Total_sigma_ARC.to(u.rad)                                     
 
 dataset_type = "JAM+Pyautolens"
 dataset_name = "Data"
-dataset_path = f"/home/carlos/Documents/GitHub/Master-Degree/ESO325/Arcs Modelling/autolens_workspace/{dataset_type}/{dataset_name}"
+dataset_path = f"home/carlos.melo/autolens_workspace/{dataset_type}/{dataset_name}"
 
 #Load data
 imaging = al.Imaging.from_fits(
