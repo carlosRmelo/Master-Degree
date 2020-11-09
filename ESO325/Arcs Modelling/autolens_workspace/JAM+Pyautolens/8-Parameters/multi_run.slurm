@@ -13,7 +13,7 @@
 ##
 ## hint = utilizar o hyper-threading dos nucleos, se houver
 ## Se desejar utilizar apenas os nucleos reais use "nomultithread"
-#SBATCH --hint=multithread
+#SBATCH --hint=nomultithread
 ##
 #SBATCH --partition=cosmoobs
 ## mem-per-cpu = quantidade de memoria RAM por nucleo
@@ -22,6 +22,10 @@
 ## time = quantidade de tempo
 #SBATCH --time=00:25:00
 ##
+## Configura o envio de e-mail quando o job for cancelado/finalizado.
+## Substitua "root" por seu endereco de e-mail.
+#SBATCH --mail-type=FAIL,END
+#SBATCH --mail-user=carlos.melo@ufrgs.br
 
 module purge
 module add softwares/python/3.6-gnu-5.3
