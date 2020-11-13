@@ -210,7 +210,7 @@ Total_sigma_RAD = Total_sigma_ARC.to(u.rad)                                     
 
 dataset_type = "JAM+Pyautolens"
 dataset_name = "Data"
-dataset_path = f"home/carlos.melo/autolens_workspace/{dataset_type}/{dataset_name}"
+dataset_path = f"/home/carlos.melo/autolens_workspace/{dataset_type}/{dataset_name}"
 
 #Load data
 imaging = al.Imaging.from_fits(
@@ -491,14 +491,14 @@ with MPIPool() as pool:
     global_time = time.time()
     for sample in new_sampler.sample(state, iterations=nsteps, progress=True):
         # Only check convergence every 100 steps
-        if sampler.iteration % 100:
+        if new_sampler.iteration % 100:
             continue
         print("\n")
         print("##########################")
         # Compute the autocorrelation time so far
         # Using tol=0 means that we'll always get an estimate even
         # if it isn't trustworthy
-        tau = sampler.get_autocorr_time(tol=0)
+        tau = new_sampler.get_autocorr_time(tol=0)
         autocorr[index] = np.mean(tau)
         index += 1
 
@@ -508,8 +508,8 @@ with MPIPool() as pool:
         table = np.loadtxt("Output_LogFile.txt")
 
 
-        iteration = sampler.iteration
-        accept = np.mean(sampler.acceptance_fraction)
+        iteration = new_sampler.iteration
+        accept = np.mean(new_sampler.acceptance_fraction)
         total_time = time.time() - global_time
         upt = np.column_stack([iteration, accept, total_time])
 
@@ -519,7 +519,7 @@ with MPIPool() as pool:
 
         #Update table output with last best fit
         last_fit_table = np.loadtxt("LastFit.txt")
-        flat_samples = sampler.get_chain()
+        flat_samples = new_sampler.get_chain()
         values = []
         for i in range(ndim):
             mcmc = np.percentile(flat_samples[:, i], [16, 50, 84])
@@ -535,7 +535,7 @@ with MPIPool() as pool:
  
 
         # Check convergence
-        converged = np.all(tau * 100 < sampler.iteration)
+        converged = np.all(tau * 100 < new_sampler.iteration)
         converged &= np.all(np.abs(old_tau - tau) / tau < 0.01)
         if converged:
             break
