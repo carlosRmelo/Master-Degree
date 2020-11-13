@@ -12,7 +12,8 @@ import emcee
 import matplotlib.pyplot as plt
 
 from time import perf_counter as clock
-from multiprocessing import Pool
+#from multiprocessing import Pool
+from schwimmbad import MPIPool
 import time
 import os
 
@@ -448,61 +449,33 @@ np.savetxt("LastFit.txt", np.column_stack([0, 0, 0, 0, 0, 0, 0, 0, 0]),
         
 
 
+with MPIPool() as pool:
 
-with Pool() as pool:
+    if not pool.is_master():
+        pool.wait()
+        sys.exit(0)
 
 
-
-
+        #Frist we read the last sample
+    filename = "save.h5"
+    read = emcee.backends.HDFBackend("save.h5")
+    nwalkers, ndim = read.shape
 
         #Defining the moves
     moves=[(emcee.moves.DEMove(), 0.8), (emcee.moves.DESnookerMove(), 0.2)]
     
 
 
-        ##### For the initial guesses we will use the Collett's best fit with a gaussian ball error around it, except for the ML, which we use a gaussian ML
-        ## variables tagged with <name>_std are the standard deviation of the parameter <name>.
-    np.random.seed(42)   
-    #Defining initial guesses
-
-
-
-    beta = np.array([-0.0, 0.91, -0.9, -1.7, 0.43, -0.35, 0.32])
-    beta_std = np.ones(beta.shape)*np.array(prior['beta1'][1])
-
-    
-
-    log_rho_s = np.array([10])
-    log_rho_s_std = np.ones(log_rho_s.shape)*2
-
-    
-
-    ##Here we append all the variables and stds in a single array.
-    p0 = np.append(beta, log_rho_s)
-
-
-    p0_std = np.append(beta_std, log_rho_s_std)
-    
-
-    #Finally we initialize the walkers with a gaussian ball around the best Collet's fit.
-    nwalkers = 200                                                  #Number of walkers
-    pos = emcee.utils.sample_ball(p0, p0_std, nwalkers)             #Initial position of all walkers
-
-
-    nwalkers, ndim = pos.shape
-    print(ndim)
-
-    filename = "save.h5"
-    backend = emcee.backends.HDFBackend(filename)
-    backend.reset(nwalkers, ndim)
-    
-
-    print("Workers nesse job:", pool._processes)
+    print("Workers nesse job:", pool.workers)
     print("Início")
     
+
     
-     # Initialize the sampler
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, pool=pool, backend=backend, moves=moves)
+    
+      #Initialize the new sampler
+    new_sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, pool=pool, backend=read, moves=moves)
+        #and get the last position
+    state = new_sampler.get_last_sample()
     
     nsteps = 50000
 
@@ -516,9 +489,9 @@ with Pool() as pool:
     # Now we'll sample for up to max_n steps
     start = time.time()
     global_time = time.time()
-    for sample in sampler.sample(pos, iterations=nsteps, progress=True):
+    for sample in new_sampler.sample(state, iterations=nsteps, progress=True):
         # Only check convergence every 100 steps
-        if sampler.iteration % 1:
+        if sampler.iteration % 100:
             continue
         print("\n")
         print("##########################")
