@@ -3,7 +3,7 @@
 ## Copyright (C) 2009-2017 VersatusHPC, Inc.
 ##
 ## nodes = quantidade de nodes
-#SBATCH --nodes=3
+#SBATCH --nodes=2
 ##
 ## ntasks-per-node = quantidade de processos por node
 #SBATCH --ntasks-per-node=20
@@ -21,7 +21,7 @@
 #SBATCH --mem-per-cpu=15G
 ##
 ## time = quantidade de tempo
-#SBATCH --time=7-00:30:00
+#SBATCH --time=-00:30:00
 ##
 ## Configura o envio de e-mail quando o job for cancelado/finalizado.
 ## Substitua "root" por seu endereco de e-mail.
@@ -45,8 +45,7 @@ if [ -n "$SLURM_CPUS_PER_TASK" ]; then
         omp_threads=$SLURM_CPUS_PER_TASK
 else
     	omp_threads=1
-fi
 export OMP_NUM_THREADS=$omp_threads
 
-mpiexec -n 50 python main_code.py
+mpirun -n 40 python continue_run.py
 

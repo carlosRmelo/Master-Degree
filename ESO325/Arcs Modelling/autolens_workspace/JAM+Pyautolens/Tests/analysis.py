@@ -2,8 +2,8 @@ import emcee
 import numpy as np
 
 read = emcee.backends.HDFBackend("save.h5")
-labels = ["ml0","delta", "b1", "b2", "b3", "b4","b5","b6","b7",
-              "Inc", "qDM", "Log rho_s", "Log mbh", "Mag Shear", "Phi Shear", "gamma"]
+labels = ["b1", "b2", "b3", "b4","b5","b6","b7",
+               "Log rho_s", ]
 
 
 tau = read.get_autocorr_time(tol=0)
