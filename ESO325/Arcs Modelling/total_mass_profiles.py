@@ -10,6 +10,8 @@ from pyquad import quad_grid
 from scipy import special
 import typing
 from time import perf_counter as clock
+import time
+
 
 #------------------------------Bloco destinado a implementação do método MGE-------------------------------------------------------#
 
@@ -136,7 +138,7 @@ def alphay(tau1,
 class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
     @af.map_types
     def __init__(
-        self, centre: dim.Position = (0.0, 0.0), processes: int = 1, method: str = "quadva", gamma: float = 1.0
+        self, centre: dim.Position = (0.0, 0.0), processes: int = 1, method: str = "quadva", gamma: float = 1.0,
         ):
         """
         Represents a MGE.
@@ -164,6 +166,8 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
         self.processes = processes
         self.method = method
         self.gamma = gamma
+    
+        	
 
 
     def MGE_comps(self, M, sigma, q, z_l, z_s):
@@ -206,7 +210,7 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
 
 
 
-    def MGE_Grid_parameters(self, grid, quiet=None):
+    def MGE_Grid_parameters(self, grid, quiet=True, **kwargs):
         """
             Cria um array com as seguintes propriedades:
             Cada linha do array terá 5 vetores representando os parâmetros necessários para o cálculo do ângulo de deflexão.
@@ -228,6 +232,11 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
             grid: Ndim Array
                 Array com dimensão (N,2) contendo os pontos (y,x) onde queremos calcular os ângulos de deflexão. Posições (y,x) em arcsec
         """
+        if kwargs.get('epsrel') is None:
+            self.epsrel =  1e-5
+            
+        else:
+            self.epsrel =  kwargs.get('epsrel')  
 
         #Primeiro é criado um grid genérico com as dimensões necessárias
         y0 = np.array([0])
@@ -247,7 +256,7 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
         #Class parameter
         self.Grid_parameters = Grid_parameters
         
-        if quiet is not None:
+        if quiet is False:
             print("Pyautolens MGE Class successfully initialized!!")
         
 
@@ -351,11 +360,11 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
             result_y = np.zeros([len(grid), 3])              #Onde ficarão salvos os resultados da deflexão em y
 
          
-
+            start = time.time()
             for i in range(len(grid)):                      #Começo do loop
-                result_x[i] = quadva(alphax, [0., 1.], args=(self.Grid_parameters[i]),epsrel=1e-10)   #Integral em x
-                result_y[i] = quadva(alphay, [0., 1.], args=(self.Grid_parameters[i]),epsrel=1e-10)   #Integral em y
-
+                result_x[i] = quadva(alphax, [0., 1.], args=(self.Grid_parameters[i]),epsrel=self.epsrel)   #Integral em x
+                result_y[i] = quadva(alphay, [0., 1.], args=(self.Grid_parameters[i]),epsrel=self.epsrel)   #Integral em y
+            print(time.time()-start)
         else:
             return print("Invalid integration method")
 
