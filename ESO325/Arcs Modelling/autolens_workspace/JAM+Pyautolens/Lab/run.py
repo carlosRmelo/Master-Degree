@@ -520,9 +520,9 @@ np.savetxt('Output_LogFile.txt', np.column_stack([0, 0, 0]),
                             fmt=b'	%i	 %e			 %e	 ', 
                             header="Output table for the combined model: Lens + Dynamic.\n Iteration	 Mean acceptance fraction	 Processing Time")
 
-np.savetxt("LastFit.txt", np.column_stack([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,]),
-                            fmt=b'%e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	', 
-                            header="Iteration	 ML1/2	 ML3	 ML4	 ML5	 ML6	 ML7	 b1	 b2	 b3	 b4	 b5	 b6	 b7	 Inc	 qDM	 Logrho_s	 LogMBH	 MagShear	 PhiShear	 gamma")
+np.savetxt("LastFit.txt", np.column_stack([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,]), 
+fmt=b'%e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	', 
+header="Iteration	 ML1/2	 ML3	 ML4	 ML5	 ML6	 ML7	 b1	 b2	 b3	 b4	 b5	 b6	 b7	 Inc	 qDM	 Logrho_s	 LogMBH	 MagShear	 PhiShear	 gamma")
 
 
 
@@ -642,8 +642,8 @@ with Pool(processes=7) as pool:
         upt = np.append(iteration, values)
 
         np.savetxt("LastFit.txt",np.vstack([last_fit_table, upt]),
-                            fmt=b'%e	 %e     %e      %e      %e      %e      %e      %e      %e', 
-                            header="Iteration   b1	 b2	 b3	 b4	 b5	 b6	 b7	  Logrho_s")
+        fmt=b'%e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	', 
+        header="Iteration	 ML1/2	 ML3	 ML4	 ML5	 ML6	 ML7	 b1	 b2	 b3	 b4	 b5	 b6	 b7	 Inc	 qDM	 Logrho_s	 LogMBH	 MagShear	 PhiShear	 gamma")
  
 
         # Check convergence
