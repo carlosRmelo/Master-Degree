@@ -3,7 +3,7 @@ import numpy as np
 
 read = emcee.backends.HDFBackend("SDP81_Combined.h5")
 labels = ["Ml0", "Delta", "Lower","b1", "b2", "b3", "b4","b5","b6","b7",
-		 "b8","Inc", "Log mbh", "qDM", "Log rho_s",  "Logrho_s", "Mag_shear", "Phi_Shear", "Gamma"]
+		 "b8","Inc", "Log mbh", "qDM", "Logrho_s", "Mag_shear", "Phi_Shear", "Gamma"]
 
 
 tau = read.get_autocorr_time(tol=0)
