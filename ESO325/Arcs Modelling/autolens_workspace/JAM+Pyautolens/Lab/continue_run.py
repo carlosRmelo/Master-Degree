@@ -15,7 +15,6 @@ import emcee
 import matplotlib.pyplot as plt
 
 
-
 #Multiprocessing
 from multiprocessing import Pool
 
@@ -533,73 +532,30 @@ fmt=b'%e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e
 header="Iteration	 ML1/2	 ML3	 ML4	 ML5	 ML6	 ML7	 b1	 b2	 b3	 b4	 b5	 b6	 b7	 Inc	 qDM	 Logrho_s	 LogMBH	 MagShear	 PhiShear	 gamma")
 
 
-"""
-    For the initial guesses we will use the Collett's best fit with a gaussian ball error around it variables tagged with <name>_std are the standard deviation of the parameter <name>.
-"""
-    
-np.random.seed(42)   
- #Defining initial guesses
-
-ml = np.array([9.5,8.5,3.8,3.4,3.2,2.8])
-ml_std = np.ones(ml.shape)*np.array(0.1)
-
-beta = np.array([-0.6, -1.0, 0.34, -3.4, 0.39, -0.31, 0.36])
-beta_std = np.ones(beta.shape)*np.array(2)
-
-inc = np.array([90])
-inc_std = np.ones(inc.shape)*5
-
-qDM = np.array([0.74])
-qDM_std = np.ones(qDM.shape)*0.5
-
-log_rho_s = np.array([2])
-log_rho_s_std = np.ones(log_rho_s.shape)*4
-
-log_mbh = np.array([10])
-log_mbh_std = np.ones(log_mbh.shape)*3
-
-mag_shear = np.array([0.2])
-mag_shear_std = np.ones(mag_shear.shape)*0.1
-
-phi_shear = np.array([0.1])
-phi_shear_std = np.ones(phi_shear.shape)*0.1
-
-gamma = np.array([1])
-gamma_std = np.ones(gamma.shape)*0.2
-
-
-##Here we append all the variables and stds in a single array.
-p0 = np.append(ml, beta)
-p0 = np.append(p0,[inc, qDM, log_rho_s, log_mbh, mag_shear, phi_shear, gamma])
-
-p0_std = np.append(ml_std, beta_std)
-p0_std = np.append(p0_std, [inc_std, qDM_std, log_rho_s_std, log_mbh_std, mag_shear_std, phi_shear_std, gamma_std])
-
-#Finally we initialize the walkers with a gaussian ball around the best Collet's fit.
-nwalkers = 200                                                  #Number of walkers
-pos = emcee.utils.sample_ball(p0, p0_std, nwalkers)             #Initial position of all walkers
-
-
-nwalkers, ndim = pos.shape
-
-#Defining the moves
-moves=[(emcee.moves.DEMove(), 0.8), (emcee.moves.DESnookerMove(), 0.2)]
-
-#Beackup
-filename = "save.h5"
-backend = emcee.backends.HDFBackend(filename)
-backend.reset(nwalkers, ndim)
 
 #Where we use the multiprocesing avaible in python.
 with Pool(processes=workers) as pool:
-    
-    
-    #Print the number os cores/workers
-    print("Workers in this job:", pool._processes)
-    print("Start")
 
-    #Initialize the sampler
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, pool=pool, backend=backend, moves=moves)
+#Frist we read the last sample
+    filename = "save.h5"
+    read = emcee.backends.HDFBackend("save.h5")
+    nwalkers, ndim = read.shape
+
+        #Defining the moves
+    moves=[(emcee.moves.DEMove(), 0.8), (emcee.moves.DESnookerMove(), 0.2)]
+    
+
+
+    print("Workers nesse job:", pool.workers)
+    print("Início")
+    
+
+    
+    
+      #Initialize the new sampler
+    new_sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, pool=pool, backend=read, moves=moves)
+        #and get the last position
+    state = new_sampler.get_last_sample()
     
     nsteps = 50000
 
@@ -613,24 +569,27 @@ with Pool(processes=workers) as pool:
     # Now we'll sample for up to max_n steps
     start = time.time()
     global_time = time.time()
-    for sample in sampler.sample(pos, iterations=nsteps, progress=True):
+    for sample in new_sampler.sample(state, iterations=nsteps, progress=True):
         # Only check convergence every 100 steps
-        if sampler.iteration % 100:
+        if new_sampler.iteration % 100:
             continue
         print("\n")
         print("##########################")
         # Compute the autocorrelation time so far
         # Using tol=0 means that we'll always get an estimate even
         # if it isn't trustworthy
-        tau = sampler.get_autocorr_time(tol=0)
+        tau = new_sampler.get_autocorr_time(tol=0)
         autocorr[index] = np.mean(tau)
         index += 1
+
+
 
         #Update a table output with acceptance
         table = np.loadtxt("Output_LogFile.txt")
 
-        iteration = sampler.iteration
-        accept = np.mean(sampler.acceptance_fraction)
+
+        iteration = new_sampler.iteration
+        accept = np.mean(new_sampler.acceptance_fraction)
         total_time = time.time() - global_time
         upt = np.column_stack([iteration, accept, total_time])
 
@@ -640,7 +599,7 @@ with Pool(processes=workers) as pool:
 
         #Update table output with last best fit
         last_fit_table = np.loadtxt("LastFit.txt")
-        flat_samples = sampler.get_chain(flat=True)
+        flat_samples = new_sampler.get_chain()
         values = []
         for i in range(ndim):
             mcmc = np.percentile(flat_samples[:, i], [16, 50, 84])
@@ -651,12 +610,12 @@ with Pool(processes=workers) as pool:
         upt = np.append(iteration, values)
 
         np.savetxt("LastFit.txt",np.vstack([last_fit_table, upt]),
-        fmt=b'%e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	', 
-        header="Iteration	 ML1/2	 ML3	 ML4	 ML5	 ML6	 ML7	 b1	 b2	 b3	 b4	 b5	 b6	 b7	 Inc	 qDM	 Logrho_s	 LogMBH	 MagShear	 PhiShear	 gamma")
+                    fmt=b'%e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	 %e	', 
+                    header="Iteration	 ML1/2	 ML3	 ML4	 ML5	 ML6	 ML7	 b1	 b2	 b3	 b4	 b5	 b6	 b7	 Inc	 qDM	 Logrho_s	 LogMBH	 MagShear	 PhiShear	 gamma")
  
 
         # Check convergence
-        converged = np.all(tau * 100 < sampler.iteration)
+        converged = np.all(tau * 100 < new_sampler.iteration)
         converged &= np.all(np.abs(old_tau - tau) / tau < 0.01)
         if converged:
             break
