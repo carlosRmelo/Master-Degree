@@ -1,0 +1,28 @@
+Aqui construímos a "PSF" para os arcos do ALMA.
+
+A PSF na verdade está relacionada com o "Synthesized Beam", que tem a definição dada em (https://casa.nrao.edu/casadocs-devel/stable/casa-fundamentals/definition_synthesized_beam) ou no arquivo "casa_memo10_restoringbeam.pdf", dentro da pasta CODES.
+
+Os dados de entrada para o Synthesized Beam estão no wcs da imagem original do ALMA (SDP81_band7_11exec.contR1_cut.fits), com os nomes:
+
+BMAJ: major axis
+BMIN: minor axis
+BPA : position angle.
+
+As unidades são deg.
+
+
+
+
+
+O Erro rms foi estimado como descrito no doc "Image_analysis2.pdf". 
+Foi encontrado (usando o ds9) o valor de 9.72145e-06 J/beam
+Ele concorda com aquele valor apresentado em https://arxiv.org/pdf/1503.07605.pdf.
+
+
+
+
+
+Para o resampling da imagem foi utilizado o mpdaf, onde deixamos o centro parado e binnamos a imagem em 2px X 2px.
+Como a imagem original possuia um grid ímpar (841px X 841px = 4.205",4.205"), a imagem binnada é um pouco menor que a original
+(420px X 420px = 4.200",4.200"), mas uma vez que os arcos estão no centro isso não deve ser um problema.
+Além disso, criamos um arquivo com DS9 com os contronos da imagem binnada (resample_ctr.ctr). Isso permite que plotemos sobre a imagem original, verificando desta forma se as posições estão coincidindo.

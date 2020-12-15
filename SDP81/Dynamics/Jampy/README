@@ -1,0 +1,10 @@
+Primeiro construímos a EPSF do MUSE usando uma imagem colabada que compreende o mesmo intervalo de comprimento de onda utilizado para o modelo do pPXF. Com essa imagem construímos uma EPSF com o Daophot do IRAF (dados na pasta /Data/Daophot_MUSE). O resultado final da EPSF é o arquivo muse_Epsf.fits.
+
+Em seguida, parametrizamos essa EPSF utilizando o MGE, o arquivo final é psf_model.fits.
+Essa parametrização assume que as gaussianas são circulares, para que ela possa ser utilziada no modelo JAM posteriormente. 
+Além disso, para ser utilziada no modelo JAM ela precisa estar normalizada. Os dados já normalizados estão salvos na tabela psf_mge.txt.
+
+
+
+O modelo usa os dados da parametrização do MGE (feita na pasta HST Data Reduction). O arquivo da fotometria é o JAM_input.txt
+Além disso, precisamos do mapa de sigma, que foi feito pelo pPXF e salvo no arquivo RMS_Velocity_Map_IndoTemplate.fits. Na primeira extensão temos a Vrms e na segunda extensão o erro RMS. Essa imagem precisa ser rotacionada. Vamos assumir o px (x,y) = (28,29) como sendo o central, pois a Vrms é maior nele.

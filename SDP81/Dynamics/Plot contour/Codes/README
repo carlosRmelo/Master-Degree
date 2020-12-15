@@ -1,0 +1,3 @@
+Once we have the correct wcs for ALMA, go to the DS9 and use the contour tool to overlap ALMA arcs to Vrms.
+
+The file ALMA.ctr has this contours values.

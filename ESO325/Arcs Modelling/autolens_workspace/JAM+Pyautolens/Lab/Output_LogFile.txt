@@ -1,3 +1,3 @@
-# Output table for the combined model: Lens + Dynamic.
-#  Iteration	 Mean acceptance fraction	 Processing Time
+# Iteration	 Mean acceptance fraction	 Processing Time
 	0	 0.000000e+00			 0.000000e+00	 
+	100	 7.700000e-03			 3.553971e+03	 

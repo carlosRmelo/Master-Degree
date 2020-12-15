@@ -1,0 +1,29 @@
+Sobre a redução de dados do HST.
+
+
+PSF:
+F160w
+
+Para a construção d PSF nessa banda utilizamos o pacote Iraf DAOPHOT, que construí uma psf do tipo e-psf baseado em estrelas do campo.
+O passo a passo seguido é descito no arquivo de Tutorial "Extracting_PSF_using_DAOPHOT.pdf". A imagem da qual a psf foi extraída está junto da psf na pasta Data.
+
+A seguir queremos parametrizar essa psf com o MGE. Isso está feito no arquivo "MGE-PSF", na pasta Codes. Após parametrizado, foi gerada uma imagem fits (modelo.fits) com o modelo da psf parametrizada pelo MGE. Geramos também uma imagem que é a diferença entre o modelo e a psf original.
+
+
+GALAXY:
+Data: F160W_centerized.fits
+
+
+Após parametrizar a PSF, usamos os dados para modelar a galáxia SDP.81 (HST F160W) com o mesmo formalismo MGE.
+Os códigos estão disponívies na pasta Codes, sob o nome MGE-SDP81.ipynb.
+Nesse arquivos estão alguns passos de como realizar o modelamento. Ao final, obtivemos o  modelo MGE com as gaussianas e suas propriedades salvas na arquivo MGE_Output_with_arcs.txt.
+Além isso, um modelo .fits foi salvo na pasta Data, bem como a diferença entre o modelo e a imagem original. Isso nos revelou os arcos gravitacionais imersos na luz da galáxia.
+
+
+Após descobrir a posição dos arcos gravitacionais, maskaramos sua posição e extraímos uma imagem com apenas eles (arcs.fits).
+Com essa imagem sabemos a posição dos arcos e podemos mascará-los na imagem original, a imagem contendo a máscara é mask.fits. A posição dos arcos recebe nan.
+Finalmente multiplicamos a imagem original (com os arcos) pela máscara (F160w_without_arcs.fits), e usamos essa imagem para realizar a interpolação com o scipy.interpolate.griddata.
+
+Foram feitas duas interpolações (linear e cubica), salvas em arquivos próprios (F160W_linear_interpolation.fits e F160W_cubic_interpolation.fits). Avaliando essas imagens (Comparing_Interpolations.png e Residual_Interpolations.png), nota-se que a melhor interpolação é a cúbica. Portanto, usaremos a imagem cúbica para construir o modelo MGE final. Os passos acima estão feitos em Selecting Arcs (Masking).ipynb
+
+
