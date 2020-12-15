@@ -546,7 +546,7 @@ with Pool(processes=workers) as pool:
     
 
 
-    print("Workers nesse job:", pool.workers)
+    print("Workers nesse job:", pool._processes)
     print("Início")
     
 
