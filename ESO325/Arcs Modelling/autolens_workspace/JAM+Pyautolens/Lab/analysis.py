@@ -16,11 +16,12 @@ print("\n")
 print("\n")
 print("Autocorr:")
 print(tau)
-print("All Log_prob:")
-print(log)
+print("Last Log_prob. Position", log.shape[0])
+print(log[ log.shape[0]-1 ])
 print("Higher Log_prob:", np.max(log))
 print("\n")
 print("\n")
+
 
 flat_samples = read.get_chain(flat=True)
 chains, ndim = flat_samples.shape

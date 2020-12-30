@@ -176,7 +176,7 @@ Total_Mass = np.concatenate((Mass_star_dat, Mass_DM_dat,
 Total_q = np.concatenate((qstar_dat, qDM_dat, qSMBH), axis=None)  #Total axial ratio per gaussian
 
 
-Total_q_proj = np.sqrt(Total_q**2 - np.cos(i)**2)/np.sin(i)    #Total projected axial ratio per gaussian
+#Total_q_proj = np.sqrt(Total_q**2 - np.cos(i)**2)/np.sin(i)    #Total projected axial ratio per gaussian
 Total_sigma_ARC = np.concatenate((sigma_star_dat_ARC, sigma_DM_dat_ARC, sigmaBH_ARC), axis=None)  #Total sigma per gaussian in arcsec
 Total_sigma_RAD = Total_sigma_ARC.to(u.rad)                    #Total sigma per gaussian in radians
 
@@ -209,7 +209,7 @@ masked_imaging = al.MaskedImaging(imaging=imaging, mask=mask_custom)
 
 mass_profile = al.mp.MGE(centre=(0.0, 0.0))                                #Mass model
 mass_profile.MGE_comps(M=Total_Mass.value, sigma=Total_sigma_RAD.value,
-                       q=Total_q_proj.value, z_l=z_lens, z_s=z_source)     #Input parameters
+                       q=Total_q, z_l=z_lens, z_s=z_source)     #Input parameters
 
 mass_profile.MGE_Grid_parameters(masked_imaging.grid)                      #Grid with the data
 
@@ -373,11 +373,11 @@ def Updt_Pyautolens(parsDic):
                                             10**parsDic['log_mbh']), axis=None)  #New total mass
     
     Total_q_model = np.concatenate((qstar_dat, qDM_model, qSMBH), axis=None)     #New axial  ratio                       
-    Total_q_proj_model = (np.sqrt(Total_q_model**2 - np.cos(inc_model)**2)/np.sin(inc_model))          #New projected axial ratio
+    #Total_q_proj_model = (np.sqrt(Total_q_model**2 - np.cos(inc_model)**2)/np.sin(inc_model))          #New projected axial ratio
 
     #Model Updt
     mass_profile.MGE_Updt_parameters(Total_Mass_model,Total_sigma_RAD.value,
-                                             Total_q_proj_model, parsDic['gamma']) #Update the model
+                                             Total_q_model, parsDic['gamma']) #Update the model
 
 
 
@@ -526,10 +526,7 @@ pos = emcee.utils.sample_ball(p0, p0_std, nwalkers)             #Initial positio
 nwalkers, ndim = pos.shape
 
 
-#Backup
-filename = "SDP81_Combined.h5"
-backend = emcee.backends.HDFBackend(filename)
-backend.reset(nwalkers, ndim)
+
 
 """
     We save the results in two tables. 
@@ -554,6 +551,11 @@ with MPIPool() as pool:
     #Print the number os cores/workers
     print("Workers nesse job:", pool.workers)
     print("Start")
+
+    #Backup
+    filename = "SDP81_Combined.h5"
+    backend = emcee.backends.HDFBackend(filename)
+    backend.reset(nwalkers, ndim)
 
     #Initialize the sampler
     sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, pool=pool, backend=backend)
