@@ -432,20 +432,20 @@ def Pyautolens_log_likelihood(parsDic):
     tracer = al.Tracer.from_galaxies(galaxies=[lens_galaxy, al.Galaxy(redshift=z_source)])
     source_plane_grid = tracer.traced_grids_of_planes_from_grid(grid=masked_imaging.grid)[1]
     
-    #check if the integral converge. If not, return -np.inf
-    if np.isnan(source_plane_grid[0,0]):
-        return -np.inf
+    #Check if the model has converged. If not, return -inf
+    try:
+        rectangular = al.pix.Rectangular(shape=(40, 40))
+        mapper = rectangular.mapper_from_grid_and_sparse_grid(grid=source_plane_grid)
     
-    rectangular = al.pix.Rectangular(shape=(40, 40))
-    mapper = rectangular.mapper_from_grid_and_sparse_grid(grid=source_plane_grid)
-    
-    inversion = al.Inversion(
-        masked_dataset=masked_imaging,
-        mapper=mapper,
-        regularization=al.reg.Constant(coefficient=3.5),
+        inversion = al.Inversion(
+            masked_dataset=masked_imaging,
+            mapper=mapper,
+            regularization=al.reg.Constant(coefficient=3.5),
     )
-    chi2T = inversion.chi_squared_map.sum()
-    return -0.5 * chi2T
+        chi2T = inversion.chi_squared_map.sum()
+        return -0.5 * chi2T
+    except:
+        return -np.inf
 
 
 def log_probability(pars):
