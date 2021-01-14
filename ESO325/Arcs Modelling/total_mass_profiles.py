@@ -375,7 +375,7 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
         
         
         
-        return (0.5*(1.0 + self.gamma))*grid
+        return ((1.0 + self.gamma))*grid
     @property
     def is_MGE(self):
         return True
