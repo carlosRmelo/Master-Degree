@@ -590,7 +590,7 @@ filename = "save.h5"
 backend = emcee.backends.HDFBackend(filename)
 backend.reset(nwalkers, ndim)
 
-#Where we use the multiprocesing avaible in python.
+#here we use the multiprocesing avaible in python.
 with Pool(processes=workers) as pool:
     
     
