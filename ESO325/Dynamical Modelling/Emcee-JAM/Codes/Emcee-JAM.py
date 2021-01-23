@@ -93,7 +93,7 @@ muse_sigmapsf= 0.2420                                       ##Sigma of psf from 
 
 #Create model
 Jampy_model = JAM(ybin=y_px, xbin=x_px,inc=inc, distance=distance.value, mbh=mbh.value,
-                  rms=vrms, erms=erms, beta=beta0, sigmapsf=muse_sigmapsf)
+                  rms=vrms, erms=erms, beta=beta0, sigmapsf=muse_sigmapsf, pixsize=muse_pixsize)
 
 #Add Luminosity component
 Jampy_model.luminosity_component(surf_lum=surf_star_dat.value, sigma_lum=sigma_star_dat_ARC.value,
