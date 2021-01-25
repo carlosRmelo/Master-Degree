@@ -1,8 +1,7 @@
 """
 Attention!
-This code makes use of python multiprocesing. The  number of workers are define in the following line.
+This code runs in MPI mode.
 """
-workers = 7
 
 
 #Control time packages
@@ -17,8 +16,8 @@ from My_Jampy import JAM
 import emcee
 import matplotlib.pyplot as plt
 
-#Multiprocessing
-from multiprocessing import Pool
+#MPI Multiprocessing
+from schwimmbad import MPIPool
 
 
 #Constants and usefull packages
@@ -351,10 +350,14 @@ np.savetxt('Output_LogFile.txt', np.column_stack([0, 0, 0]),
                             header="Output table for the Dynamic model.\n Iteration	 Mean acceptance fraction	 Processing Time")
 
 
-with Pool(processes=workers) as pool:
+with MPIPool() as pool:
+
+    if not pool.is_master():
+        pool.wait()
+        sys.exit(0)
 
     #Print the number os cores/workers
-    print("Workers nesse job:", pool._processes)
+    print("Workers nesse job:", pool.workers)
     print("Start")
 
 
