@@ -46,18 +46,18 @@ c_Mpc = c*metre2Mpc                         #Speed of light in Mpc/s
 
 #Galaxy
 distance = D_l                                              #Angular diameter distance [Mpc]
-inc = 92.99                                                   #Inclination [deg]
-mbh =  10**(8.47)*u.solMass                                        #Mass of black hole [M_sun]
-beta0 = np.array([0.29, 0.19, 0.46, -1.83, 0.39, 0.01, 0.11])                #Anisotropy parameter, one for each gaussian component
+inc = 90.49                                                   #Inclination [deg]
+mbh =  10**(7.90)*u.solMass                                        #Mass of black hole [M_sun]
+beta0 = np.array([-0.12, 0.02, 0.72, -3.35, 0.38, 0.09, 0.06])                #Anisotropy parameter, one for each gaussian component
 
-ML0 = np.array([9.58, 9.58, 8.13, 5.20, 4.93, 4.72, 4.50])*u.solMass/u.solLum       #Mass-to-light ratio per gaussian [M_sun/L_sun]
+ML0 = np.array([7.49, 7.49, 5.42, 5.26, 5.21, 5.19, 5.17])*u.solMass/u.solLum       #Mass-to-light ratio per gaussian [M_sun/L_sun]
 
 
 #DM
 surf_DM_dat = surf_DM_dat*(u.solMass/u.pc**2)                          #Surface Density in M_sun/pc²
 sigma_DM_dat_ARC = sigma_DM_dat*u.arcsec                               #Sigma in arcsec
 sigma_DM_dat_PC = (sigma_DM_dat_ARC*D_l).to(u.pc, u.dimensionless_angles())    #Convert sigma in arcsec to sigma in pc
-qDM_dat = np.ones_like(qDM_dat)*0.62                                                              #axial ratio of DM halo
+qDM_dat = np.ones_like(qDM_dat)*0.59                                                              #axial ratio of DM halo
 
 
 #Stars
@@ -87,7 +87,7 @@ Jampy_model.luminosity_component(surf_lum=surf_star_dat.value, sigma_lum=sigma_s
                                     qobs_lum=qstar_dat, ml=ML0.value)
 
 #Add Dark Matter component
-Jampy_model.DM_component(surf_dm=10**(9.28)*surf_DM_dat.value, sigma_dm=sigma_DM_dat_ARC.value, qobs_dm=qDM_dat)
+Jampy_model.DM_component(surf_dm=10**(9.54)*surf_DM_dat.value, sigma_dm=sigma_DM_dat_ARC.value, qobs_dm=qDM_dat)
 
 Jampy_model.run(plot=True, quiet=False)
 
