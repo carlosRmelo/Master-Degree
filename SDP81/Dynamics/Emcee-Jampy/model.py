@@ -63,19 +63,19 @@ c_Mpc = c*metre2Mpc                         #Speed of light in Mpc/s
 
 #Galaxy
 distance = D_l    #Angular diameter distance [Mpc]
-inc = 69.64                                                    #Inclination [deg]
-mbh =  10**(9.10)*u.solMass                                        #Mass of black hole [M_sun]
-beta0 = -np.array([1.50, 1.86, 2.01, 1.99, 0.99, 2.55, 2.46, 3.94])                         #Anisotropy parameter, one for each gaussian component
-ML0 = gaussian_ml(sigma=sigma_star_dat, delta=0.92,
-                     ml0=7.10, lower=0.45)*(u.solMass/u.solLum) #Gaussian Mass-to-light ratio [M_sun/L_sun]
+inc = 89                                                   #Inclination [deg]
+mbh =  10**(8.38)*u.solMass                                        #Mass of black hole [M_sun]
+beta0 = np.array([0.12, 0.05, 0.11, 0.05, 0.1, -0.08, -0.12, -0.57])                         #Anisotropy parameter, one for each gaussian component
+ML0 = gaussian_ml(sigma=sigma_star_dat, delta=0.72,
+                     ml0=7.36, lower=0.42)*(u.solMass/u.solLum) #Gaussian Mass-to-light ratio [M_sun/L_sun]
 
 
 
 #DM
-surf_DM_dat = 10**(8.83)*(surf_DM_dat*(u.solMass/u.pc**2))                          #Surface Density in M_sun/pc²
+surf_DM_dat = 10**(8.54)*(surf_DM_dat*(u.solMass/u.pc**2))                          #Surface Density in M_sun/pc²
 sigma_DM_dat_ARC = sigma_DM_dat*u.arcsec                               #Sigma in arcsec
 sigma_DM_dat_PC = (sigma_DM_dat_ARC*D_l).to(u.pc, u.dimensionless_angles())    #Convert sigma in arcsec to sigma in pc
-qDM_dat = np.ones_like(qDM_dat)*0.65                                                              #axial ratio of DM halo
+qDM_dat = np.ones_like(qDM_dat)*0.51                                                             #axial ratio of DM halo
 
 
 #Stars
@@ -106,3 +106,6 @@ Jampy_model.luminosity_component(surf_lum=surf_star_dat.value, sigma_lum=sigma_s
 
 #Add Dark Matter component
 Jampy_model.DM_component(surf_dm=surf_DM_dat.value, sigma_dm=sigma_DM_dat_ARC.value, qobs_dm=qDM_dat)
+
+
+Jampy_model.run(plot=True, quiet=False)
