@@ -48,9 +48,9 @@ c_Mpc = c*metre2Mpc                         #Speed of light in Mpc/s
 distance = D_l                                              #Angular diameter distance [Mpc]
 inc = 90.49                                                   #Inclination [deg]
 mbh =  10**(7.90)*u.solMass                                        #Mass of black hole [M_sun]
-beta0 = np.array([-0.12, 0.02, 0.72, -3.35, 0.38, 0.09, 0.06])                #Anisotropy parameter, one for each gaussian component
+beta0 = np.array([-0.02, 0.09, 0.72, -3.44, 0.38, 0.09, 0.06])                #Anisotropy parameter, one for each gaussian component
 
-ML0 = np.array([7.49, 7.49, 5.42, 5.26, 5.21, 5.19, 5.17])*u.solMass/u.solLum       #Mass-to-light ratio per gaussian [M_sun/L_sun]
+ML0 = np.array([7.32, 7.32, 5.41, 5.26, 5.21, 5.19, 5.17])*u.solMass/u.solLum       #Mass-to-light ratio per gaussian [M_sun/L_sun]
 
 
 #DM
@@ -87,7 +87,7 @@ Jampy_model.luminosity_component(surf_lum=surf_star_dat.value, sigma_lum=sigma_s
                                     qobs_lum=qstar_dat, ml=ML0.value)
 
 #Add Dark Matter component
-Jampy_model.DM_component(surf_dm=10**(9.54)*surf_DM_dat.value, sigma_dm=sigma_DM_dat_ARC.value, qobs_dm=qDM_dat)
+Jampy_model.DM_component(surf_dm=10**(9.50)*surf_DM_dat.value, sigma_dm=sigma_DM_dat_ARC.value, qobs_dm=qDM_dat)
 
 Jampy_model.run(plot=True, quiet=False)
 

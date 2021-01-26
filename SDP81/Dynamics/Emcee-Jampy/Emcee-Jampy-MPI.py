@@ -79,7 +79,7 @@ c_Mpc = c*metre2Mpc                         #Speed of light in Mpc/s
 distance = D_l    #Angular diameter distance [Mpc]
 inc = 85                                                    #Inclination [deg]
 mbh =  1e5*u.solMass                                        #Mass of black hole [M_sun]
-beta0 = np.ones_like(surf_star_dat)                         #Anisotropy parameter, one for each gaussian component
+beta0 = np.ones_like(surf_star_dat)*0                         #Anisotropy parameter, one for each gaussian component
 ML0 = gaussian_ml(sigma=sigma_star_dat, delta=1,
                      ml0=8, lower=0.4)*(u.solMass/u.solLum) #Gaussian Mass-to-light ratio [M_sun/L_sun]
 
@@ -310,7 +310,7 @@ def log_probability(pars):
 """
 
 ml_init = np.array([10, 0.7, 0.4])                #Parameters of gaussian ML [ml0, delta, lower]
-beta_init = beta0*(3 - 4*np.random.random())    #Anisotropy parameters 
+beta_init = beta0                                 #Anisotropy parameters 
 inc_init = np.array([85])                         #Inclination in deg
 log_mbh_init = np.array([8])                      #Log mass of SMBH
 qDM_init = np.array([0.5])                        #Scalar describing the axial ratio of DM component
@@ -327,6 +327,8 @@ p0 = np.append(p0,[inc_init, log_mbh_init, qDM_init, log_rho_s_init])
   There is no reason for that, once we do not have any prior information  
 """
 p0_std = np.abs(p0*0.5)                                  #0.5 is the sigma of the Gaussian ball. 
+
+p0_std[3:11] = p0_std[3:11] + 1
                                                                 #We are using 50% of the initial guesses
 
 

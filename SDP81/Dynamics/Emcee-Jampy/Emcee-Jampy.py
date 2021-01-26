@@ -311,7 +311,7 @@ def log_probability(pars):
 """
 
 ml_init = np.array([10, 0.7, 0.4])                #Parameters of gaussian ML [ml0, delta, lower]
-beta_init = beta0*(3 - 4*np.random.random())    #Anisotropy parameters 
+beta_init = beta0*0    #Anisotropy parameters 
 inc_init = np.array([85])                         #Inclination in deg
 log_mbh_init = np.array([8])                      #Log mass of SMBH
 qDM_init = np.array([0.5])                        #Scalar describing the axial ratio of DM component
@@ -328,6 +328,8 @@ p0 = np.append(p0,[inc_init, log_mbh_init, qDM_init, log_rho_s_init])
   There is no reason for that, once we do not have any prior information  
 """
 p0_std = np.abs(p0*0.5)                                  #0.5 is the sigma of the Gaussian ball. 
+
+p0_std[3:11] = p0_std[3:11] + 1     #This is because we initialize beta iqual to zero.
                                                                 #We are using 50% of the initial guesses
 
 
