@@ -63,19 +63,19 @@ c_Mpc = c*metre2Mpc                         #Speed of light in Mpc/s
 
 #Galaxy
 distance = D_l    #Angular diameter distance [Mpc]
-inc = 89                                                   #Inclination [deg]
-mbh =  10**(8.38)*u.solMass                                        #Mass of black hole [M_sun]
-beta0 = np.array([0.12, 0.05, 0.11, 0.05, 0.1, -0.08, -0.12, -0.57])                         #Anisotropy parameter, one for each gaussian component
-ML0 = gaussian_ml(sigma=sigma_star_dat, delta=0.72,
-                     ml0=7.36, lower=0.42)*(u.solMass/u.solLum) #Gaussian Mass-to-light ratio [M_sun/L_sun]
+inc = 99.45                                                   #Inclination [deg]
+mbh =  10**(8.51)*u.solMass                                        #Mass of black hole [M_sun]
+beta0 = np.array([-0.05, 0.92, 0.96, -0.46, 0.02, 0.12, 0.62, -0.74])                         #Anisotropy parameter, one for each gaussian component
+ML0 = gaussian_ml(sigma=sigma_star_dat, delta=1.03,
+                     ml0=10.26, lower=0.80)*(u.solMass/u.solLum) #Gaussian Mass-to-light ratio [M_sun/L_sun]
 
 
 
 #DM
-surf_DM_dat = 10**(8.54)*(surf_DM_dat*(u.solMass/u.pc**2))                          #Surface Density in M_sun/pc²
+surf_DM_dat = 10**(9.57)*(surf_DM_dat*(u.solMass/u.pc**2))                          #Surface Density in M_sun/pc²
 sigma_DM_dat_ARC = sigma_DM_dat*u.arcsec                               #Sigma in arcsec
 sigma_DM_dat_PC = (sigma_DM_dat_ARC*D_l).to(u.pc, u.dimensionless_angles())    #Convert sigma in arcsec to sigma in pc
-qDM_dat = np.ones_like(qDM_dat)*0.51                                                             #axial ratio of DM halo
+qDM_dat = np.ones_like(qDM_dat)*0.60                                                             #axial ratio of DM halo
 
 
 #Stars
@@ -109,3 +109,4 @@ Jampy_model.DM_component(surf_dm=surf_DM_dat.value, sigma_dm=sigma_DM_dat_ARC.va
 
 
 Jampy_model.run(plot=True, quiet=False)
+plt.show()
