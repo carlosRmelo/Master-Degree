@@ -102,10 +102,12 @@ Jampy_model.luminosity_component(surf_lum=surf_star_dat.value, sigma_lum=sigma_s
 
 #Add Dark Matter component
 Jampy_model.DM_component(surf_dm=surf_DM_dat.value, sigma_dm=sigma_DM_dat_ARC.value, qobs_dm=qDM_dat)
-plt.figure(figsize=(12,12))
-Jampy_model.run(plot=True, quiet=False, vmax=400, vmin=300)
 
-plt.show()
+#Plot dynamical model
+#plt.figure(figsize=(12,12))
+#Jampy_model.run(plot=True, quiet=False, vmax=400, vmin=300)
+
+#plt.show()
 
 
 #Now the lens model
@@ -322,13 +324,12 @@ def Updt_Pyautolens(parsDic):
 
     
     #Total mass
-    Total_Mass_model = np.concatenate((Stellar_Mass_model, Mass_DM_dat, 
-                                            Mass_SMBH_dat), axis=None)  #New total mass
+    Total_Mass_model = np.concatenate((Stellar_Mass_model, Mass_DM_dat.value, Mass_SMBH_dat.value), axis=None)  #New total mass
     
     Total_q_model = np.concatenate((qstar_dat, qDM_dat, qSMBH), axis=None)     #New axial  ratio                       
 
     #Model Updt
-    mass_profile.MGE_Updt_parameters(Total_Mass_model.value,Total_sigma_RAD.value,
+    mass_profile.MGE_Updt_parameters(Total_Mass_model,Total_sigma_RAD.value,
                                              Total_q_model, parsDic['gamma']) #Update the model
 
             
@@ -412,7 +413,7 @@ np.savetxt('Output_LogFile.txt', np.column_stack([0, 0, 0]),
 #Defining initial guesses
 
 ml = np.array([6.75, 5.48, 5.36, 5.32, 5.30, 5.29])
-ml_std = ml*0.2                                 #30% of each value
+ml_std = ml*0.1                                 #10% of each value
 
 mag_shear = np.array([0.02])
 mag_shear_std = mag_shear*0.1                   #10% of the value
@@ -421,7 +422,7 @@ phi_shear = np.array([119])
 phi_shear_std = phi_shear*0.1                   #10% of the value
 
 gamma = np.array([1.0])
-gamma_std = gamma*0.2                           #20% of the value
+gamma_std = gamma*0.1                           #20% of the value
 
 """
     Pay close attention to the order in which the components are added. 
