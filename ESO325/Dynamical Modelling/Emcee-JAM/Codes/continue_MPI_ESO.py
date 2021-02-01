@@ -319,10 +319,10 @@ with MPIPool() as pool:
 
 
     #Initialize the new sampler
-    new_sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, pool=pool, backend=read,
-                    moves=[(emcee.moves.WalkMove(), 0.6), (emcee.moves.StretchMove(), 0.4),])
+    new_sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, pool=pool, backend=read)
         #and get the last position
     state = new_sampler.get_last_sample()
+    new_sampler.reset()
     
 
     
