@@ -407,16 +407,15 @@ np.savetxt('Output_LogFile.txt', np.column_stack([0, 0, 0]),
 
 """"
  For the initial guesses of ML we will use the best fit  of Jampy-Emcee with a gaussian ball error around it variables tagged with <name>_std are the standard deviation of the parameter <name>.
- For the shear we will use the best fit of Collett's paper. 
 """
 
 #Defining initial guesses
 
 ml = np.array([6.75, 5.48, 5.36, 5.32, 5.30, 5.29])
-ml_std = ml*0.1                                 #10% of each value
+ml_std = np.ones_like(ml)*0.1                                 #10% of each value
 
-mag_shear = np.array([0.02])
-mag_shear_std = mag_shear*0.1                   #10% of the value
+mag_shear = np.array([0.5])
+mag_shear_std = np.array([0.1])                   #10% of the value
 
 phi_shear = np.array([119])
 phi_shear_std = phi_shear*0.1                   #10% of the value
