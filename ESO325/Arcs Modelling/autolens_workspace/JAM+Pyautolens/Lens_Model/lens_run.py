@@ -19,6 +19,9 @@ import numpy as np
 from My_Jampy import JAM
 import matplotlib.pyplot as plt
 import emcee
+from schwimmbad import MPIPool
+import time
+
 
 #Constants and usefull packages
 from astropy.cosmology import Planck15 as cosmo
@@ -325,7 +328,7 @@ def Updt_Pyautolens(parsDic):
     Total_q_model = np.concatenate((qstar_dat, qDM_dat, qSMBH), axis=None)     #New axial  ratio                       
 
     #Model Updt
-    mass_profile.MGE_Updt_parameters(Total_Mass_model,Total_sigma_RAD.value,
+    mass_profile.MGE_Updt_parameters(Total_Mass_model.value,Total_sigma_RAD.value,
                                              Total_q_model, parsDic['gamma']) #Update the model
 
             
@@ -408,7 +411,7 @@ np.savetxt('Output_LogFile.txt', np.column_stack([0, 0, 0]),
 
 #Defining initial guesses
 
-ml = ML0.value
+ml = np.array([6.75, 5.48, 5.36, 5.32, 5.30, 5.29])
 ml_std = ml*0.2                                 #30% of each value
 
 mag_shear = np.array([0.02])
