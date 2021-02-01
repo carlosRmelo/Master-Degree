@@ -1,0 +1,8 @@
+Códigos para o modelo da lente.
+
+Deve ser usado como ponto de partida "burn-in".
+Primeiro foi rodado o modelo Jampy, onde se determinou os parâmetros iniciais do modelo dinâmico:
+Massa de cada gaussiana, beta, massa do buraco negro, inclinação e parâmetros da matéria escura.
+
+Agora, neste modelo vamos fixar esses valores acima (como o best fit) e deixar como parâmetro livre apenas os parâmetros do modelo de lente:
+Shear, gamma. 

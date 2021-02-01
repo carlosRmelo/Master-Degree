@@ -21,7 +21,7 @@ class Scribbler:
         self.figure = plt.figure()
         self.ax = self.figure.add_subplot(111)
         if cmap is None:
-            plt.imshow(image, interpolation="none")
+            plt.imshow(image, interpolation="none", vmin=-0.05, vmax=0.1, cmap='hot')
         else:
             norm = cmap.norm_from_array(array=image)
             plt.imshow(image, cmap=cmap.cmap, norm=norm)
