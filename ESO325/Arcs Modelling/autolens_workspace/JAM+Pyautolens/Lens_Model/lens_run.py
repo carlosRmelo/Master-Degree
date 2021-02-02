@@ -406,39 +406,33 @@ np.savetxt('Output_LogFile.txt', np.column_stack([0, 0, 0]),
 
 
 """"
- For the initial guesses of ML we will use the best fit  of Jampy-Emcee with a gaussian ball error around it variables tagged with <name>_std are the standard deviation of the parameter <name>.
+ For the initial guesses of ML we will use the best fit  of Jampy-Emcee and the best fit of Collett's paper
 """
 
 #Defining initial guesses
 
 ml = np.array([6.75, 5.48, 5.36, 5.32, 5.30, 5.29])
-ml_std = np.ones_like(ml)*0.1                                 #10% of each value
-
 mag_shear = np.array([0.5])
-mag_shear_std = np.array([0.1])                   #10% of the value
-
 phi_shear = np.array([119])
-phi_shear_std = phi_shear*0.1                   #10% of the value
-
 gamma = np.array([1.0])
-gamma_std = gamma*0.1                           #20% of the value
+
 
 """
     Pay close attention to the order in which the components are added. 
     They must follow the log_probability unpacking order.
 """
 
+import numpy as np
 #Initial Positions of walkers
 ##Here we append all the variables and stds in a single array.
 p0 = np.append(ml, mag_shear)
 p0 = np.append(p0,[phi_shear, gamma])
 
-p0_std = np.append(ml_std, mag_shear_std)
-p0_std = np.append(p0_std, [phi_shear_std, gamma_std])
+#number of walkers
+nwalkers = 200   
 
-#Finally we initialize the walkers with a gaussian ball around the best Collet's fit.
-nwalkers = 200                                                  #Number of walkers
-pos = emcee.utils.sample_ball(p0, p0_std, nwalkers)             #Initial position of all walkers
+#Finally we initialize the walkers with position around the best values above
+pos = p0 + 1e-2 * np.random.randn(nwalkers, p0.size)
 
 
 nwalkers, ndim = pos.shape
