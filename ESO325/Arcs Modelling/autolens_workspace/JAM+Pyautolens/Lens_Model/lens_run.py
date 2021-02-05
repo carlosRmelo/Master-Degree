@@ -62,15 +62,15 @@ c_Mpc = c*metre2Mpc                         #Speed of light in Mpc/s
 These values are based on the best fit of Jampy-Emcee.
 """
 distance = D_l                                                #Angular diameter distance [Mpc]
-inc = 89.74                                                   #Inclination [deg]
-mbh =  (10**(7.77))*u.solMass                                 #Mass of black hole [M_sun]
-beta0 = np.array([-0.46, -0.64, 0.72, -3.35, 0.37, 0.09, 0.05])      #Anisotropy parameter, one for each gaussian component
+inc = 89.90                                                     #Inclination [deg]
+mbh =  (10**(7.76))*u.solMass                                 #Mass of black hole [M_sun]
+beta0 = np.array([-0.44, -0.59, 0.72, -3.36, 0.37, 0.09, 0.05])      #Anisotropy parameter, one for each gaussian component
 
-ML0 = np.array([6.75, 6.75, 5.48, 5.36, 5.32, 5.30, 5.29])*u.solMass/u.solLum     #Mass-to-light ratio per gaussian [M_sun/L_sun]
+ML0 = np.array([6.72, 6.72, 5.48, 5.36, 5.32, 5.30, 5.29])*u.solMass/u.solLum     #Mass-to-light ratio per gaussian [M_sun/L_sun]
 
 
 #DM
-surf_DM_dat = (10**(9.21))*surf_DM_dat*(u.solMass/u.pc**2)          #Surface Density in M_sun/pc²
+surf_DM_dat = (10**(9.20))*surf_DM_dat*(u.solMass/u.pc**2)          #Surface Density in M_sun/pc²
 sigma_DM_dat_ARC = sigma_DM_dat*u.arcsec                            #Sigma in arcsec
 sigma_DM_dat_PC = (sigma_DM_dat_ARC*D_l).to(u.pc, u.dimensionless_angles())    #Convert sigma in arcsec to sigma in pc
 qDM_dat = np.ones_like(qDM_dat)*0.61                                                              #axial ratio of DM halo
@@ -219,8 +219,8 @@ lens_galaxy = al.Galaxy(
 ### Priors
 
 # parameter boundaries. [lower, upper]
-boundary = {'ml': [0.5, 15], 'qDM': [0.15, 1], 'mag_shear': [0, 2], 'phi_shear': [0, 180],
-                     'gamma': [-2, 2] }
+boundary = {'ml': [0.5, 15], 'mag_shear': [0, 1], 'phi_shear': [0, 180],
+                     'gamma': [-1, 1.5] }
 
 """
     Except for the gamma parameter, all other parameters has flat priors in log space, i.e, if the value is accepted its return 0 (log(1)), otherwise return -np.inf (log(0)). This choice is because we are assuming no previous knowledge about any parameters, except for the General Relativity, quantified in terms of gamma. 
@@ -229,7 +229,7 @@ boundary = {'ml': [0.5, 15], 'qDM': [0.15, 1], 'mag_shear': [0, 2], 'phi_shear':
 """
 
 # parameter gaussian priors. [mean, sigma]
-prior = {'gamma': [1.0, 0.5] }
+prior = {'gamma': [1.0, 0.1] }
 
 
 def check_ML_Grad(ml):
@@ -304,7 +304,7 @@ def log_prior(parsDic):
     """
     Finaly gaussian prior for gamma
     """
-    rst += -0.5 * (parsDic['gamma'] - prior['gamma'][0])**2/prior['gamma'][1]**2         #gamma
+    rst += -0.5 * ( (parsDic['gamma'] - prior['gamma'][0])**2 )/prior['gamma'][1]**2         #gamma
     
     return rst
 
@@ -411,8 +411,8 @@ np.savetxt('Output_LogFile.txt', np.column_stack([0, 0, 0]),
 
 #Defining initial guesses
 
-ml = np.array([6.75, 5.48, 5.36, 5.32, 5.30, 5.29])
-mag_shear = np.array([0.5])
+ml = np.array([6.72, 5.48, 5.36, 5.32, 5.30, 5.29])
+mag_shear = np.array([0.05])
 phi_shear = np.array([119])
 gamma = np.array([1.0])
 
@@ -422,7 +422,7 @@ gamma = np.array([1.0])
     They must follow the log_probability unpacking order.
 """
 
-import numpy as np
+
 #Initial Positions of walkers
 ##Here we append all the variables and stds in a single array.
 p0 = np.append(ml, mag_shear)
@@ -432,7 +432,7 @@ p0 = np.append(p0,[phi_shear, gamma])
 nwalkers = 200   
 
 #Finally we initialize the walkers with position around the best values above
-pos = p0 + 1e-2 * np.random.randn(nwalkers, p0.size)
+pos = p0 + np.random.randn(nwalkers, p0.size)
 
 
 nwalkers, ndim = pos.shape
@@ -455,6 +455,12 @@ with MPIPool() as pool:
     #Initialize the sampler
     sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, pool=pool, backend=backend)
     
+    #Brun in
+    burnin_steps = 1000
+    print("Brun in fase with %i steps"%burnin_steps)
+    state =  sampler.run_mcmc(pos, burnin_steps, progress=True)
+    sampler.reset()
+
     nsteps = 50000
 
      # We'll track how the average autocorrelation time estimate changes
@@ -467,7 +473,7 @@ with MPIPool() as pool:
     # Now we'll sample for up to max_n steps
     start = time.time()
     global_time = time.time()
-    for sample in sampler.sample(pos, iterations=nsteps, progress=True):
+    for sample in sampler.sample(state, iterations=nsteps, progress=True):
         # Only check convergence every 100 steps
         if sampler.iteration % 100:
             continue
