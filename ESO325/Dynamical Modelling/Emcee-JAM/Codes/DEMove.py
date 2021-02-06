@@ -327,7 +327,7 @@ def log_probability(pars):
 
 np.random.seed(42)   
  #Defining initial guesses
-
+'''
 ml = np.array([9.5,8.5,3.8,3.4,3.2,2.8])
 ml_std = ml*np.array(0.15)
 
@@ -346,19 +346,32 @@ log_rho_s_std = np.ones(log_rho_s.shape)*4
 log_mbh = np.array([10])
 log_mbh_std = np.ones(log_mbh.shape)*3
 
+'''
+ml = np.array([9.5,8.5,3.8,3.4,3.2,2.8])
+beta = np.array([-0.6, -1.0, 0.34, -3.4, 0.39, -0.31, 0.36])
+inc = np.array([90])
+qDM = np.array([0.74])
+log_rho_s = np.array([6])
+log_mbh = np.array([10])
 
 ##Here we append all the variables and stds in a single array.
 p0 = np.append(ml, beta)
 p0 = np.append(p0,[inc, qDM, log_rho_s, log_mbh])
 
-p0_std = np.append(ml_std, beta_std)
-p0_std = np.append(p0_std, [inc_std, qDM_std, log_rho_s_std, log_mbh_std])
+#p0_std = np.append(ml_std, beta_std)
+#p0_std = np.append(p0_std, [inc_std, qDM_std, log_rho_s_std, log_mbh_std])
 
 #Finally we initialize the walkers with a gaussian ball around the best Collet's fit.
 nwalkers = 400                                                  #Number of walkers
-pos = emcee.utils.sample_ball(p0, p0_std, nwalkers)             #Initial position of all walkers
+
+pos = p0 + np.random.randn(nwalkers, p0.size)
+
+#pos = emcee.utils.sample_ball(p0, p0_std, nwalkers)             #Initial position of all walkers
 
 nwalkers, ndim = pos.shape                                      #Number of walkers/dimensions
+#print(pos.shape)
+#print("\n")
+#print(pos)
 
 
 """
@@ -388,15 +401,14 @@ with MPIPool() as pool:
     backend.reset(nwalkers, ndim)
 
     #Defining moves
-    moves =  [ (emcee.moves.DEMove(), 0.90),
-               (emcee.moves.DEMove(), 0.10),]
-
+    moves =  [ (emcee.moves.DEMove())]
+    g0 = 2.38 / np.sqrt(2 * ndim)             #gamma0 recommended by emcee
     #Initialize the sampler
     sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, pool=pool,
                                      backend=backend, moves=moves)
     
     #Burn in fase
-    burnin = 100                           #Number os burn in steps
+    burnin = 1000                           #Number os burn in steps
     print("Burn in with %i steps"%burnin)
     state = sampler.run_mcmc(pos, nsteps=burnin, progress=True)
     sampler.reset()
@@ -436,20 +448,20 @@ with MPIPool() as pool:
         mean_accp_100 = np.mean(old_accp/float(100))    #Mean accp fraction of last 100 steps
 
         #Check accp. fraction of last 100 steps and updt the moves
-
+        print(sampler._moves[0].gamma0)
         if mean_accp_100 < 0.2:
-            sampler._moves[0].gamma0 = 0.9
-            sampler._moves[1].gamma0 = 1.1
+            sampler._moves[0].gamma0 = 0.9 * g0
+            
         
         elif mean_accp_100 > 0.31:
-            sampler._moves[0].gamma0 = 1.1
-            sampler._moves[1].gamma0 = 0.9
+            sampler._moves[0].gamma0 = 1.1 * g0
+            
         else:
-            sampler._moves[0].gamma0 = np.sqrt(mean_accp_100/0.25)
-            sampler._moves[1].gamma0 = np.sqrt(mean_accp_100/0.25)           
+            sampler._moves[0].gamma0 = np.sqrt(mean_accp_100/0.25) * g0
+                       
         
-        
-        print(mean_accp_100, sampler._moves[0].gamma0, sampler._moves[1].gamma0)
+        print("\n")
+        print(mean_accp_100, sampler._moves[0].gamma0)
         
 
 
