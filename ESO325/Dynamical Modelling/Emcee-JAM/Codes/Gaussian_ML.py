@@ -1,7 +1,21 @@
 """
 Attention!
-This code runs in MPI mode.
+This code makes use of MPI
 """
+
+
+"""
+The proposal of this test is implement a walk as was proposed by Nelson et al (2014).
+    <http://www.stat.columbia.edu/~gelman/stuff_for_blog/cajo.pdf>`_ is
+    implemented following `Nelson et al. (2013)
+    <https://arxiv.org/abs/1311.5229>`_.
+Roughly speaking, we want update the walkers parameters for each 100 steps, with the objective of obtaining a better acceptance fraction.
+
+
+In his words:
+"The value of γ can be updated after every generation through-out a RUN DMC simulation. We aim for an acceptance fractionof 0.25. If too few states are being accepted (<0.2), γ is scaled by 0.9 in the hope that smaller jumps will lead to a higher accep-tance fraction. If the acceptance fraction exceeds 0.31, then γ is scaled by 1.1 to allow for larger jumps. For intermediate acceptance fractions, γ is scaled by sqrt(Acceptance Fraction/0.25). In DEMCMC, this procedure references information from only one previous generation of states, so our algorithm is still Markov foreach generation. The mathematical conditions for RUN DMC converging to the target distribution are still satisfied (ter Braak2006), and thus, adjustments in the proposal vector size will not change the shape or scale of the target distribution."
+"""
+
 
 
 #Control time packages
@@ -16,15 +30,15 @@ from My_Jampy import JAM
 import emcee
 import matplotlib.pyplot as plt
 
-#MPI Multiprocessing
+#MPI
 from schwimmbad import MPIPool
-
 
 #Constants and usefull packages
 from astropy.cosmology import Planck15 as cosmo
 from astropy.constants import G, M_sun, c
 import astropy.units as u
 
+from os import path
 
 #Gaussian ML function
 def gaussian_ml(sigma, delta, ml0=1.0, lower=0.0):
@@ -41,7 +55,6 @@ def gaussian_ml(sigma, delta, ml0=1.0, lower=0.0):
     ML = ml0 * (lower + (1-lower)*np.exp(-0.5 * (sigma * delta)**2))
     
     return ML
-#------------------------------------------------------------------------------------#
 
 #Reading data
 y_px, x_px, vrms, erms = np.loadtxt('pPXF_rot_data.txt', unpack=True)                  #pPXF
@@ -49,14 +62,14 @@ surf_star_dat, sigma_star_dat, qstar_dat = np.loadtxt('JAM_Input.txt', unpack=Tr
 surf_DM_dat, sigma_DM_dat, qDM_dat  = np.loadtxt('pseudo-DM Input.txt', unpack=True)   #DM
 
 
-muse_normpsf, muse_sigmapsf = np.loadtxt("MUSE_Psf_model.txt", unpack=True)             #Muse PSF
+
+
 
 ### Global Constantes
 
-#readshift
+#Redshifth
 
-z_galaxy = 0.299                                #galaxy redshifth
-
+z_galaxy = 0.035                                 #galaxy redshifth
 
 #Angular diameter distances
 D_l = cosmo.angular_diameter_distance(z_galaxy)                       
@@ -76,13 +89,12 @@ c_Mpc = c*metre2Mpc                         #Speed of light in Mpc/s
 """   
 
 #Galaxy
-distance = D_l    #Angular diameter distance [Mpc]
+distance = D_l                                              #Angular diameter distance [Mpc]
 inc = 85                                                    #Inclination [deg]
 mbh =  1e5*u.solMass                                        #Mass of black hole [M_sun]
-beta0 = np.ones_like(surf_star_dat)*0                         #Anisotropy parameter, one for each gaussian component
-ML0 = gaussian_ml(sigma=sigma_star_dat, delta=1,
-                     ml0=8, lower=0.4)*(u.solMass/u.solLum) #Gaussian Mass-to-light ratio [M_sun/L_sun]
-
+beta0 = beta = np.zeros(surf_star_dat.shape)                #Anisotropy parameter, one for each gaussian component
+ML0 = gaussian_ml(sigma=sigma_star_dat, delta=0.5,
+                     ml0=10, lower=0.4)*(u.solMass/u.solLum)       #Mass-to-light ratio per gaussian [M_sun/L_sun]
 
 
 #DM
@@ -99,6 +111,7 @@ sigma_star_dat_PC = (sigma_star_dat_ARC*D_l).to(u.pc, u.dimensionless_angles()) 
 qstar_dat = qstar_dat                                          #axial ratio of star photometry
 
 
+
 #----------------------------------------------------------------------------------------------------#
 
 
@@ -106,13 +119,12 @@ qstar_dat = qstar_dat                                          #axial ratio of s
 
 #Defining some instrumental quantities and galaxy characteristics
 
-muse_pixsize=0.2                                            #pixscale of IFU [arcsec/px]
-muse_normpsf=muse_normpsf                                   #normalized intensity of IFU PSF
-muse_sigmapsf=muse_sigmapsf                                 #sigma of each gaussian IFU PSF [arcsec]
+muse_pixsize=0.6                                            #pixscale of IFU [arcsec/px]
+muse_sigmapsf= 0.2420                                       ##Sigma of psf from MUSE [arcsec]
 
 #Create model
 Jampy_model = JAM(ybin=y_px, xbin=x_px,inc=inc, distance=distance.value, mbh=mbh.value,
-                  rms=vrms, erms=erms, beta=beta0, normpsf=muse_normpsf, sigmapsf=muse_sigmapsf, pixsize=muse_pixsize)
+                  rms=vrms, erms=erms, beta=beta0, sigmapsf=muse_sigmapsf, pixsize=muse_pixsize)
 
 #Add Luminosity component
 Jampy_model.luminosity_component(surf_lum=surf_star_dat.value, sigma_lum=sigma_star_dat_ARC.value,
@@ -123,24 +135,23 @@ Jampy_model.DM_component(surf_dm=surf_DM_dat.value, sigma_dm=sigma_DM_dat_ARC.va
 
 
 
-#--------------------------------------- EMCEE -----------------------------------------------------#
+#----------------------------------------------------------------------------------------------------#
+
+#--------------------------------------- EMCEE ------------------------------------------------------#
 
 
 ### Priors
 
 ###boundaries. [lower, upper]
 boundary = {'inc': [60, 120], 'beta': [-5, 5], 'ml0': [0.5, 15], 'delta': [0.0, 2], 'lower': [0, 1],
-            'log_mbh':[7, 11], 'qDM': [0.15, 1], 'log_rho_s':[6, 13]}
+                 'log_mbh':[7, 11], 'qDM': [0.15, 1], 'log_rho_s':[6, 13]}
 
 
-
-
-
-
-
-"""
+""" 
     For all  parameters we assume flat priors in log space, i.e, if the value is accepted its return 0 (log(1)), otherwise return -np.inf (log(0)). This choice is because we are assuming no previous knowledge about any parameters.
 """
+
+
 
 
 
@@ -155,7 +166,7 @@ def check_Deprojected_axial(parsDic):
     if np.any(qintr_star <= 0.05):
         return -np.inf
     
-        #DM
+    #DM
     qintr_DM = parsDic['qDM']**2 - np.cos(inc)**2
     if qintr_DM <= 0:
         return -np.inf
@@ -167,6 +178,7 @@ def check_Deprojected_axial(parsDic):
     return 0.0
 
     
+
 
 
 def check_boundary(parsDic):
@@ -182,10 +194,11 @@ def check_boundary(parsDic):
     #Check if beta is ok
 
     #Avoid beta[i] == 1, because this could cause problems
-    if any(parsDic['beta'] == 1):
-        return -np.inf
-    else:
-        pass
+    for i in range(len(parsDic['beta'])):
+        if parsDic['beta'][i] != 1:
+            pass
+        else:
+            return -np.inf
 
     #Check beta boundary
     for i in range(len(parsDic['beta'])):
@@ -222,21 +235,17 @@ def log_prior(parsDic):
     
     rst = 0
     """
-    The lines above is only for doble check, because we are assuming flat prior for all parameters. Once we got here, all values ​​have already been accepted, so just return 0.0 for each of them. 
+    The lines above is only for doble check, because we are assuming flat prior for all parameters, except for the gamma. Once we got here, all values ​​have already been accepted, so just return 0.0 for one of them
     """
 
-    rst += 0.0     #ml0
+    rst += 0.0     #mass-to-light
     rst += 0.0     #beta
     rst += 0.0     #inc
     rst += 0.0     #log_mbh
     rst += 0.0     #qDM
     rst += 0.0     #log_rho_s
-    rst += 0.0     #delta
-    rst += 0.0     #lower
     
     return rst
-
-
 
 
 def Updt_JAM(parsDic):
@@ -249,13 +258,11 @@ def Updt_JAM(parsDic):
     qDM_model = np.ones(qDM_dat.shape)*parsDic['qDM']            #DM axial ratio
     beta_model = np.array(parsDic['beta'])                       #anisotropy parameter
     mbh_model = 10**parsDic['log_mbh']                           #BH mass
-    
+
     #mass-to-light update 
     ml_model = gaussian_ml(sigma=sigma_star_dat, delta=parsDic['delta'],
                            ml0=parsDic['ml0'], lower=parsDic['lower'])
     
-
-
     #Model Updt
     Jampy_model.upt(surf_dm=surf_DM_model, qobs_dm=qDM_model, inc=parsDic['inc'],
                      ml=ml_model, beta=parsDic['beta'], mbh=mbh_model)
@@ -272,8 +279,6 @@ def JAM_log_likelihood(parsDic):
     return -0.5 * chi2T
 
 
-
-
 def log_probability(pars):
     """
         Log-probability function for whole model.
@@ -283,15 +288,15 @@ def log_probability(pars):
             log probability for the combined model.
     """
 
-    (ml0, delta, lower, b1, b2, b3, b4, b5, b6, b7, b8, inc, log_mbh,
-             qDM, log_rho_s) = pars
+    (ml0, delta, lower, b1, b2, b3, b4, b5, b6, b7, inc,
+        qDM, log_rho_s, log_mbh) = pars
     
+    beta =  np.array([b1, b2, b3, b4, b5, b6, b7])
 
 
-    
-    beta =  np.array([b1, b2, b3, b4, b5, b6, b7, b8])
-    parsDic = {'ml0': ml0, 'delta': delta, 'lower':lower,'beta': beta, 'inc': inc,
+    parsDic = {'ml0': ml0, 'delta': delta, 'lower':lower, 'beta': beta, 'inc': inc,
                 'log_mbh': log_mbh, 'qDM': qDM, 'log_rho_s': log_rho_s}
+
     
     #Checking boundaries
     if not np.isfinite(check_boundary(parsDic)):
@@ -301,45 +306,45 @@ def log_probability(pars):
 
     return lp + JAM_log_likelihood(parsDic)
 
+
 #Initial Positions of walkers
 
 
 """
+    For the initial guesses we will use the Collett's best fit with a gaussian ball error around it variables tagged with <name>_std are the standard deviation of the parameter <name>.
+
     Pay close attention to the order in which the components are added. 
     They must follow the log_probability unpacking order.
 """
 
-ml_init = np.array([10, 0.7, 0.4])                #Parameters of gaussian ML [ml0, delta, lower]
-beta_init = beta0                                 #Anisotropy parameters 
-inc_init = np.array([85])                         #Inclination in deg
-log_mbh_init = np.array([8])                      #Log mass of SMBH
-qDM_init = np.array([0.5])                        #Scalar describing the axial ratio of DM component
-log_rho_s_init = np.array([8])                    #Log intensity of pseudo-NFW profile
 
+np.random.seed(42)   
 
+ml_init = np.array([10, 0.5, 0.4])                #Parameters of gaussian ML [ml0, delta, lower]
+beta = np.array([-0.6, -1.0, 0.34, -3.4, 0.39, -0.31, 0.36])
+inc = np.array([90])
+qDM = np.array([0.74])
+log_rho_s = np.array([6])
+log_mbh = np.array([10])
 
-##Here we append all the variables in asingle array.
-p0 = np.append(ml_init, beta_init)
-p0 = np.append(p0,[inc_init, log_mbh_init, qDM_init, log_rho_s_init])
+##Here we append all the variables and stds in a single array.
+p0 = np.append(ml_init, beta)
+p0 = np.append(p0,[inc, qDM, log_rho_s, log_mbh])
 
-"""
-  We will start all walkers in a large gaussian ball around the values above. 
-  There is no reason for that, once we do not have any prior information  
-"""
-p0_std = np.abs(p0*0.5)                                  #0.5 is the sigma of the Gaussian ball. 
-
-p0_std[3:11] = p0_std[3:11] + 1
-                                                                #We are using 50% of the initial guesses
-
+#p0_std = np.append(ml_std, beta_std)
+#p0_std = np.append(p0_std, [inc_std, qDM_std, log_rho_s_std, log_mbh_std])
 
 #Finally we initialize the walkers with a gaussian ball around the best Collet's fit.
-nwalkers = 200                                                  #Number of walkers
-pos = emcee.utils.sample_ball(p0, p0_std, nwalkers)             #Initial position of all walkers
+nwalkers = 400                                                  #Number of walkers
 
+pos = p0 +  np.random.randn(nwalkers, p0.size)
 
-nwalkers, ndim = pos.shape
+#pos = emcee.utils.sample_ball(p0, p0_std, nwalkers)             #Initial position of all walkers
 
-
+nwalkers, ndim = pos.shape                                      #Number of walkers/dimensions
+#print(pos.shape)
+#print("\n")
+#print(pos)
 
 
 """
@@ -347,11 +352,12 @@ nwalkers, ndim = pos.shape
     The first marks the number of iterations, the mean acceptance fraction an the running time. 
     The second marks the last fit values for each parameter.
 """
-np.savetxt('Output_LogFile.txt', np.column_stack([0, 0, 0]),
-                            fmt=b'	%i	 %e			 %e	 ', 
-                            header="Output table for the Dynamic model.\n Iteration	 Mean acceptance fraction	 Processing Time")
+np.savetxt('Output_LogFile.txt', np.column_stack([0, 0, 0, 0]),
+                            fmt=b'	%i	 %e			 %e     %e', 
+                            header="Output table for the combined model: Dynamic.\n Iteration	 Mean acceptance fraction	 Processing Time    Last 100 Mean Accp.")
 
 
+#here we use the MPI
 with MPIPool() as pool:
 
     if not pool.is_master():
@@ -362,16 +368,28 @@ with MPIPool() as pool:
     print("Workers nesse job:", pool.workers)
     print("Start")
 
-
     #Backup
-    filename = "SDP81_Jampy.h5"
+    filename = "Emcee-JAM-ESO325.h5"
     backend = emcee.backends.HDFBackend(filename)
     backend.reset(nwalkers, ndim)
 
+    #Defining moves
+    moves =  [ (emcee.moves.DEMove())]
+    g0 = 2.38 / np.sqrt(2 * ndim)             #gamma0 recommended by emcee
     #Initialize the sampler
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, pool=pool, backend=backend)
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, pool=pool,
+                                     backend=backend, moves=moves)
     
-    nsteps = 50000
+    #Burn in fase
+    burnin = 100                           #Number os burn in steps
+    print("Burn in with %i steps"%burnin)
+    state = sampler.run_mcmc(pos, nsteps=burnin, progress=True)
+    sampler.reset()
+    print("\n")
+    print("End of bur in fase")
+    #End of burn in fase
+
+    nsteps = 50000                          #Number of walkes 
 
      # We'll track how the average autocorrelation time estimate changes
     index = 0
@@ -380,15 +398,49 @@ with MPIPool() as pool:
      # This will be useful to testing convergence
     old_tau = np.inf
 
+     # This saves how many walkers have been accepted in the last 100 steps
+    old_accp = np.zeros(nwalkers,)
+
     # Now we'll sample for up to max_n steps
     start = time.time()
     global_time = time.time()
-    for sample in sampler.sample(pos, iterations=nsteps, progress=True):
+
+
+
+    for sample in sampler.sample(state, iterations=nsteps, progress=True):
         # Only check convergence every 100 steps
         if sampler.iteration % 100:
             continue
         print("\n")
         print("##########################")
+
+        #Compute how many walkes have been accepted during the last 100 steps
+
+        new_accp = sampler.backend.accepted             #Total number of accepted
+        old_accp = new_accp - old_accp                  #Number of accepted in the last 100 steps
+        mean_accp_100 = np.mean(old_accp/float(100))    #Mean accp fraction of last 100 steps
+
+        #Check accp. fraction of last 100 steps and updt the moves
+        print(sampler._moves[0].gamma0)
+        if mean_accp_100 < 0.2:
+            sampler._moves[0].gamma0 = 0.9 * g0
+            
+        
+        elif mean_accp_100 > 0.31:
+            sampler._moves[0].gamma0 = 1.1 * g0
+            
+        else:
+            sampler._moves[0].gamma0 = np.sqrt(mean_accp_100/0.25) * g0
+                       
+        
+        print("\n")
+        print(mean_accp_100, sampler._moves[0].gamma0)
+        
+
+
+
+
+
         # Compute the autocorrelation time so far
         # Using tol=0 means that we'll always get an estimate even
         # if it isn't trustworthy
@@ -402,11 +454,11 @@ with MPIPool() as pool:
         iteration = sampler.iteration
         accept = np.mean(sampler.acceptance_fraction)
         total_time = time.time() - global_time
-        upt = np.column_stack([iteration, accept, total_time])
+        upt = np.column_stack([iteration, accept, total_time, mean_accp_100])
 
         np.savetxt('Output_LogFile.txt', np.vstack([table, upt]),
-                                fmt=b'	%i	 %e			 %e	 ', 
-                                header="Iteration	 Mean acceptance fraction	 Processing Time")
+                                fmt=b'	%i	 %e			 %e             %e', 
+                            header="Output table for the combined model: Dynamic.\n Iteration	 Mean acceptance fraction	 Processing Time    Last 100 Mean Accp. Fraction")
 
 
         # Check convergence
@@ -423,5 +475,3 @@ with MPIPool() as pool:
     print("Final")
     multi_time = end - start
     print("Multiprocessing took {0:.1f} seconds".format(multi_time))
-
-
