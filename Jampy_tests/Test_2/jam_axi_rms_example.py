@@ -50,7 +50,7 @@ def jam_axi_rms_example():
     # The model is similar but not identical to the adopted kinematics!
     rmsModel, ml, chi2, flux = jam_axi_rms(
         surf_lum, sigma_lum, qobs_lum, surf_pot, sigma_pot, qobs_pot,
-        inc, mbh, distance, xbin, ybin, plot=True, rms=rms, sigmapsf=sigmapsf,
+        inc, mbh, distance, xbin, ybin, plot=False, rms=rms, sigmapsf=sigmapsf,
         normpsf=normpsf, beta=beta, pixsize=pixsize, tensor='zz', goodbins=goodbins)
     print("Best ML fitted:", ml)
     plt.show()

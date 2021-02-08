@@ -262,7 +262,11 @@ class JAM():
 
             assert self.surf_dm.size == self.sigma_dm.size == self.qobs_dm.size, "The DM MGE components do not match"
         except:
-            raise ValueError("Dark Matter components were not properly initialized")
+            if surf_dm is not None:
+                raise ValueError("Dark Matter components were not properly initialized")
+            else:
+                pass
+        
 
         if ml is not None:
             self.ml = ml
