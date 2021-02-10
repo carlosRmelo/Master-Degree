@@ -1,0 +1,7 @@
+Inclination [deg]: 60.0
+Distance [Mpc]: 16.5
+MBH [solar mass]:1.000000e+08
+Anisotropy: [0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3]
+Sigma PSF [arcsec]: [0.6, 1.2]
+Normpsf: [0.7, 0.3]
+Pixel size [arcsec]: 0.8

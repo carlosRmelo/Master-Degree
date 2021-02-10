@@ -17,7 +17,7 @@ def jam_axi_rms_example():
 
     """
     np.random.seed(123)
-    xbin, ybin = np.random.uniform(low=[-55, -40], high=[55, 40], size=[1000, 2]).T
+    xbin, ybin, gbin, rbin = np.loadtxt("vrm.txt", unpack=True)
 
     inc = 60.                                                # Assumed galaxy inclination
     r = np.sqrt(xbin**2 + (ybin/np.cos(np.radians(inc)))**2) # Radius in the plane of the disk
