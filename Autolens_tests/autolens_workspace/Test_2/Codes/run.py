@@ -359,6 +359,9 @@ def Pyautolens_log_likelihood(parsDic):
             regularization=al.reg.Constant(coefficient=3.5),
     )
         chi2T = inversion.chi_squared_map.sum()
+
+        #aplt.Inversion.subplot_inversion(inversion, include=aplt.Include(inversion_border=False,
+        #                                                         inversion_pixelization_grid=False))
         return -0.5 * chi2T
     except:
         return -np.inf
@@ -427,11 +430,12 @@ with MPIPool() as pool:
     filename = "simulation.h5"
     backend = emcee.backends.HDFBackend(filename)
     backend.reset(nwalkers, ndim)
+    moves = [(emcee.moves.DESnookerMove(gammas=1.0),0.3), (emcee.moves.StretchMove(),0.7)]
 
 
     #Initialize the sampler
     sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, pool=pool,
-                                     backend=backend)
+                                     backend=backend, moves=moves)
     
     #Burn in fase
     burnin = 100                           #Number os burn in steps
