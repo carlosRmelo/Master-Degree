@@ -193,7 +193,9 @@ with MPIPool() as pool:
                     surf_star_dat, sigma_star_dat_ARC, sigma_star_dat_PC, qobs_star_dat, Lum_star_dat,
                     sigmaBH_ARC, sigmaBH_PC, qSMBH, Total_sigma_RAD,
                     Jampy_model, masked_imaging, mass_profile)
-
+    
+    #p0 = np.array([4.2, 0.3, 60., 8, 0.02, 124, 1])
+    #model(p0)
     #Initial Positions of walkers
     """
         Pay close attention to the order in which the components are added. 
@@ -226,7 +228,8 @@ with MPIPool() as pool:
     filename = "simulation.h5"
     backend = emcee.backends.HDFBackend(filename)
     backend.reset(nwalkers, ndim)
-    moves = [(emcee.moves.DESnookerMove(gammas=1.0),0.3), (emcee.moves.StretchMove(),0.7)]
+    moves = [(emcee.moves.DESnookerMove(gammas=2.1),0.1), (emcee.moves.StretchMove(),0.8), (emcee.moves.DESnookerMove(),0.1)]
+
 
 
     #Initialize the sampler

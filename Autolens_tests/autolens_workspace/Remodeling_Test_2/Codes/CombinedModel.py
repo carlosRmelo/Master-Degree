@@ -5,7 +5,7 @@ import autolens.plot as aplt
 
 ###boundaries. [lower, upper]
 boundary = {'inc': [50, 140], 'beta': [-5, 5], 'ml': [0.5, 15], 'log_mbh':[7, 11],
-                     'mag_shear': [0, 0.5], 'phi_shear': [0, 180], 'gamma': [-1, 2]}
+                     'mag_shear': [0, 0.1], 'phi_shear': [0, 180], 'gamma': [0, 2]}
 
 
 # parameter gaussian priors. [mean, sigma]
@@ -195,9 +195,10 @@ class Model(object):
                 regularization=al.reg.Constant(coefficient=3.5),
         )
             chi2T = inversion.chi_squared_map.sum()
+            #print(parsDic)
 
             #aplt.Inversion.subplot_inversion(inversion, include=aplt.Include(inversion_border=False,
-            #                                                         inversion_pixelization_grid=False)#)
+            #                                                         inversion_pixelization_grid=False))
             return -0.5 * chi2T
         except:
             return -np.inf

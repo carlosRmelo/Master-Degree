@@ -1,0 +1,29 @@
+import numpy as np
+import corner
+import emcee
+import matplotlib.pyplot as plt
+
+read = emcee.backends.HDFBackend("simulation.h5")
+
+chain = read.get_chain()
+
+labels = ["ML", "beta", "inclination", "log_mbh", "mag_shear", "phi_shear", "gamma"]
+
+tau = read.get_autocorr_time(tol=0)
+print(tau)
+samples = read.get_chain(flat=True)
+log_prob_samples = read.get_log_prob(flat=True)
+
+
+print("flat chain shape: {0}".format(samples.shape))
+print("flat log prob shape: {0}".format(log_prob_samples.shape))
+
+all_samples = np.concatenate(
+    (samples, log_prob_samples[:, None]), axis=1
+)
+
+labels += ["log prob"]
+
+corner.corner(samples, labels=labels)
+plt.show()
+
