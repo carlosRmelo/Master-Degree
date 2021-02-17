@@ -149,7 +149,7 @@ def alphay(tau1,
 class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
     @af.map_types
     def __init__(
-        self, centre: dim.Position = (0.0, 0.0), processes: int = 1, method: str = "quadva", gamma: float = 1.0,
+        self, centre: dim.Position = (0.0, 0.0), processes: int = 1, method: str = "quadva", gamma: float = 1.0, epsabs: float = 1e-10, epsrel: float = 1e-5,
         ):
         """
         Represents a MGE.
@@ -167,15 +167,21 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
                         Otherwise, deflection angle is calculated in parallel.
         gamma: float
             Is the Pos-Newtonian Parameter. If gamma is equal to one we recover General Relativity. Otherwise, we may have discovered something new.
+        epsabs and epsrel: float, float
+            Pure absolute error for quadva. Default: 1e-10
+            Pure relative error for quadva. Default: 1e-5
+            Generally the error test is a mixed one, but pure absolute error and pure relative error are allowed.  If a pure relative error test is specified, the tolerance must be at least 100*EPS.  (Jampy documentation for more detailed description.)
         """
 
 
         super(MGE, self).__init__(
             centre=centre,
         )
+        self.epsabs    = epsabs
+        self.epsrel    = epsrel
         self.processes = processes
-        self.method = method
-        self.gamma = gamma
+        self.method    = method
+        self.gamma     = gamma
     
         	
 
@@ -184,8 +190,6 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
                     surf_lum, sigma_lum, qobs_lum, ml=None,
                     surf_dm=None, sigma_dm=None, qobs_dm=None,
                     mbh=None, sigma_mbh=None, qobs_mbh=None):
-        
-        
         """
         MGE mass model parameters
         --------------------
@@ -260,6 +264,10 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
             self.surf_dm  = surf_dm
             self.sigma_dm = sigma_dm
             self.qobs_dm  = qobs_dm
+        else:
+            self.surf_dm  = None
+            self.sigma_dm = None
+            self.qobs_dm  = None
 
         if mbh is not None:
             self.mbh = mbh
@@ -272,6 +280,9 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
                 self.qobs_mbh = 1.0
             else:
                 self.qobs_mbh = qobs_mbh
+        else:
+            self.mbh = None
+            self.qobs_mbh = None
 
 
 
@@ -282,19 +293,15 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
 
             #Compute total mass of model; And define others quantities. 
             # It's part of initialization.
-        self.MGE_total_mass()       
+        self.MGE_total_components()       
 
 
-        #Constant Factor from integral in deflection angles
-        critical_density = (c_Mpc**2/(4*np.pi*G_Mpc))*(D_s/(D_ls*D_l))
-        const_factor = 1/(np.pi*critical_density*D_l**2)
-
-        self.const_factor = const_factor.value
 
 
-    def MGE_total_mass(self):
+
+    def MGE_total_components(self):
         """
-        Return total mass of MGE model. Also, contains mass of each component separately, and total luminosity per gaussian in L_sun. 
+            Compute total components for the model, i.e, Total mass, Totoal sigma, Total qobs and so on.
         """
         #Converting some qauntities to arcsec to parsec, or arcsec to radian
 
@@ -326,17 +333,17 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
             sigma_dm_ARC = self.sigma_dm * u.arcsec           #sigma in arcsec
             sigma_dm_PC  = (sigma_dm_ARC * self.D_l).to(u.pc, u.dimensionless_angles()) #Convert sigma in arcsec to sigma in pc
 
-            self.sigma_dm_ARC = sigma_lum_ARC.value
-            self.sigma_dm_PC  = sigma_lum_PC.value
+            self.sigma_dm_ARC = sigma_dm_ARC.value
+            self.sigma_dm_PC  = sigma_dm_PC.value
 
             #Convert surf_DM mass total mass per Guassian 
                 #Total DM mass per gaussian in M_sun
             self.Mass_DM = 2 * np.pi * self.surf_dm * (self.sigma_dm_PC**2) * self.qobs_dm
 
             #Update Total components to include DM
-            Total_mass.append(self.Mass_DM)
-            Total_sigma_ARC.append(self.sigma_dm_ARC)
-            Total_qobs.append(self.qobs_dm)
+            Total_mass      = np.append(Total_mass, self.Mass_DM)
+            Total_sigma_ARC = np.append(Total_sigma_ARC, self.sigma_dm_ARC)
+            Total_qobs      = np.append(Total_qobs, self.qobs_dm)
 
         #BH component
         if self.mbh is not None:
@@ -350,9 +357,10 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
             self.Mass_bh = self.mbh
 
             #Update Total components to include black hole
-            Total_mass.append(self.Mass_bh)
-            Total_sigma_ARC.append(self.sigma_mbh_ARC)
-            Total_qobs.append(self.qobs_mbh)
+            Total_mass      = np.append(Total_mass, self.Mass_bh)
+            Total_sigma_ARC = np.append(Total_sigma_ARC, self.sigma_mbh_ARC)
+            Total_qobs      = np.append(Total_qobs, self.qobs_mbh)
+
 
         #Total components of MGE model, per gaussian 
         self.Total_Mass      = Total_mass                                      #[M_sun]
@@ -360,88 +368,110 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
         self.Total_sigma_RAD = ((Total_sigma_ARC * u.arcsec).to(u.rad)).value  #[rad]
         self.Total_qobs      = Total_qobs                                      #[ad]
 
+        assert self.Total_Mass.size == self.Total_sigma_RAD.size == self.Total_qobs.size, "Total components do not match"
 
 
 
-    def MGE_Grid_parameters(self, grid, quiet=True, **kwargs):
+
+    def MGE_Grid_parameters(self, grid, quiet=True):
         """
-            Cria um array com as seguintes propriedades:
-            Cada linha do array terá 5 vetores representando os parâmetros necessários para o cálculo do ângulo de deflexão.
-            O total de linhas é o total de pares de pontos (pxs) onde vamos calcular o modelo.
-            As entradas são na ordem: y, x, M, sigma, q, onde y,x são escalares e M, sigma, q arrays de mesma dimensão.
-            Supõe-se que a classe MGE.MGE_comps já foi iniciada.
+            Creates an array with the following properties:
+            Each row of the array will have 5 vectors defined for the parameters for calculating the deflection angle.
+            The total of lines is the total of pairs of points [pxs] where we will calculate the model.
+            The entries are in order: y, x, M, sigma, q, where y, x are scalar and M, sigma, q arrays of the same dimension.
+            It is assumed that the class MGE.MGE_comps has already started.
             _____________________________________
-
-            y: Array escalar
-                Posição y do grid
-            x: Array escalar
-                Posição x do grid
-            M: Ndim Array
-                Array Ndim contendo a massa de cada gaussiana em M_sun.
-            sigma: Ndim Array
-                Array Ndim contendo a dispersão de cada gausiana em rad.
-            q: Ndim Array
-                Array Ndim contendo o axial ratio deprojetado de cada gaussiana. Adimensional
+            Input:
+            ----------
             grid: Ndim Array
-                Array com dimensão (N,2) contendo os pontos (y,x) onde queremos calcular os ângulos de deflexão. Posições (y,x) em arcsec
-        """
-        if kwargs.get('epsrel') is None:
-            self.epsrel =  1e-5
-            
-        else:
-            self.epsrel =  kwargs.get('epsrel')  
+                Array with dimension (N, 2) containing the points (y, x) where we want to calculate the deflection angles. Positions (y, x) in arcsec.
+            quiet: Boolean
+                If false, accuses that the model was started correctly.
 
-        #Primeiro é criado um grid genérico com as dimensões necessárias
+            Output:
+                Array with  above description and this values.
+            ---------------
+            y: Array scalar
+                y position of grid. [rad]
+            x: Array scalar
+                x position of grid. [rad]
+            Total_Mass: Ndim Array
+                Ndim Array with mass of each Gaussian (star, dm and bh if there is). [M_sun]
+            Total_sigma_RAD: Ndim Array
+                Ndim Array with dispersion of each gaussian. [rad]
+            Total_qobs: Ndim Array
+                Ndim Array  with axial ratio of each gaussian. [Ad] 
+        """
+
+
+        
+        #First a generic grid is created with the necessary dimensions
         y0 = np.array([0])
         x0 = np.array([0])
-        initial = np.array([y0, x0, self.M, self.sigma, self.q])
-        Grid_parameters = np.array([y0, x0, self.M, self.sigma, self.q])
+        initial = np.array([y0, x0, self.Total_Mass, self.Total_sigma_RAD, self.Total_qobs])
+        Grid_parameters = np.array([y0, x0, self.Total_Mass, self.Total_sigma_RAD, self.Total_qobs])
 
-        #Agora realizamos um loop para criar todas as posições:
-        for i in range(len(grid)-1): #-1 pois já começamos com uma posição (initial)
+        #Now we perform a loop to create all the positions:
+        for i in range(len(grid)-1): #-1 because we already started with a position (initial)
             Grid_parameters = np.vstack([Grid_parameters, initial])
-
-        #Agora atualizamos as posições (y,x) e convertemos suas unidades para rad
+        
+  
+        #Now we update the positions (y, x) and convert their units to rad
         Grid_parameters[:, 0] = (grid[:, 0]*u.arcsec).to(u.rad).value
         Grid_parameters[:, 1] = (grid[:, 1]*u.arcsec).to(u.rad).value
 
-
-        #Class parameter
+        #Making it an attribute of the class
         self.Grid_parameters = Grid_parameters
         
         if quiet is False:
             print("Pyautolens MGE Class successfully initialized!!")
         
 
-        return 
 
 
 
-    def MGE_Updt_parameters(self, M, sigma, q, gamma = 1.0):
+    def MGE_Updt_parameters(self,
+                                surf_lum=None, sigma_lum=None, qobs_lum=None, ml=None,
+                                surf_dm=None, sigma_dm=None, qobs_dm=None,
+                                mbh=None, sigma_mbh=None, qobs_mbh=None,
+                                gamma = None, quiet=True):
         """
-            Atualiza a grid de pâmetros do modelo. Particularmente útil quando utilizada em conjunto com Emcee.
-            Assume-se que as classes MGE.MGE_comps e MGE.MGE_Grid_parameters já foram devidamente inicializadas.
-            --------------------------------
+            Updates the model's parameter grid. Particularly useful when used in conjunction with Emcee.
+            It is assumed that the classes MGE.MGE_comps and MGE.MGE_Grid_parameters have already been properly initialized.
             
-            M: Ndim Array
-                Array Ndim contendo a massa de cada gaussiana em M_sun.
-            sigma: Ndim Array
-                Array Ndim contendo a dispersão de cada gausiana em rad.
-            q: Ndim Array
-                Array Ndim contendo o axial ratio deprojetado de cada gaussiana. Adimensional
+            Inputs:
+            --------------------------------
+                Same as MGE_comps
             gamma: float
-                Is the Pos-Newtonian Parameter. If gamma is equal to one we recover General Relativity.
+                Pos-Newtonian Parameter. If gamma is equal to one we recover General Relativity.
+            quiet: Boolean
+                If false, accuses that the model was updated correctly.
         """
-        self.gamma = gamma
-        for i in range(len(self.Grid_parameters)):
-            self.Grid_parameters[i][2] = M
-            self.Grid_parameters[i][3] = sigma
-            self.Grid_parameters[i][4] = q
-            self.M = M
-            self.sigma = sigma
-            self.q = q
 
-        #return print("Parâmetros atualizados com sucesso!")
+        pars = {'surf_lum':surf_lum, 'sigma_lum':sigma_lum, 'qobs_lum':qobs_lum, 'ml':ml,
+                    'surf_dm':surf_dm, 'sigma_dm':sigma_dm, 'qobs_dm':qobs_dm,
+                    'mbh':mbh, 'sigma_mbh':sigma_mbh, 'qobs_mbh':qobs_mbh,
+                    'gamma':gamma}
+
+        try:
+
+            for key in pars.keys():
+                if pars[key] is not None:
+                    self.__dict__[key] = pars[key]
+
+        
+            self.MGE_total_components()
+        except:
+            print("Your update values are not valid. Please, consider check your parameters before continue.")
+
+        
+        for i in range(len(self.Grid_parameters)):
+            self.Grid_parameters[i][2] = self.Total_Mass
+            self.Grid_parameters[i][3] = self.Total_sigma_RAD
+            self.Grid_parameters[i][4] = self.Total_qobs
+
+        if quiet is False:
+            return print("Parameters updated successfully!")
 
     
             
@@ -462,74 +492,90 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
     @grids.grid_like_to_structure
     @grids.transform
     @grids.relocate_to_radial_minimum
-    def deflections_from_grid(self, grid):
-        #print('entrou')
-        #print("Tamanho do grid", len(grid))
+    def deflections_from_grid(self, grid, quiet=True):
+        """"
+        When we use adaptive grid (Voronoi Adaptive or similar) source plane grid are constantly update. The following lines make this update for MGE model.
+
+        Input:
+        --------------------------------
+        grid: Ndarray
+            Grid where we wanto to compute the model, containing (y,x) position in arcsec.
+        quiet: Boolean
+            If False, print steps (integrator,  number of cores, ...)
+        """
         if len(grid) == len(self.Grid_parameters):
-            #print("Os grids são Iguais!")
+            #Grids have same size. Just continue to deflection angle calculation.
             pass
         else:
-            #print("Os grids de parâmetros e fonte são diferentes. Atualizando...")
+            #The parameter and source grids are different. Updating grid ...
             self.MGE_Grid_parameters(grid)
-            #print("Novo tamanho da grid de parâmetros:", len(self.Grid_parameters))
-
-            #Verify the integration method
+        
+        
+        #Now, depending of your input in **__init__.method**, a different integrator is used.
 
         if self.method == "sciquad":
-            print("Integration using scipy.quad")
+            if quiet is False: print("Integration using scipy.quad")
             
-
-                
             if self.processes != 1:
-                #A integração será feita em paralelo usando o self.processes núcleos
-                print('Integração em Paralelo. Número de núcleos é:', self.processes)
-                #Deflexão em x
-                pool = Pool(processes=self.processes)                           #Definindo o número de núcleos a serem usados
-                result_x =  pool.map(integral_x, self.Grid_parameters)          #Passamos cada uma das linhas de parâmetros como argumento e chamamos a integral
-                pool.close()                                                    #Fechamos o processo após ele terminar
+                #Integration will be done in parallel using the self.processes cores
+                print('Parallel Integration. Number of cores is:', self.processes)
+                
+                #Deflection in x
+                pool = Pool(processes=self.processes)                           #Defining the number of cores to be used
+                result_x =  pool.map(integral_x, self.Grid_parameters)          #We pass each of the parameter lines as an argument and call the integral
+                pool.close()                                                    #We close the process after it finishes
 
-                #Deflexão em y
-                pool = Pool(processes=self.processes)                           #Definindo o números de núcleos a serem usados
-                result_y =  pool.map(integral_y, self.Grid_parameters)          #Passamos cada uma das linhas de parâmetros como argumento e chamamos a integral
-                pool.close()                                                    #Fechamos o processo após ele terminar
+
+
+                #Deflection in y
+                pool = Pool(processes=self.processes)                           #Defining the number of cores to be used
+                result_y =  pool.map(integral_y, self.Grid_parameters)          ##We pass each of the parameter lines as an argument and call the integral
+                pool.close()                                                    #e close the process after it finishes
 
                 result_x = np.array(result_x)
                 result_y = np.array(result_y)
 
             else:
-                #A integração será feita em série.
-                print('Integração em série')
-                result_x = np.zeros([len(grid), 2])              #Onde ficarão salvos os resultados da deflexão em x
-                result_y = np.zeros([len(grid), 2])              #Onde ficarão salvos os resultados da deflexão em y
+                #The integration will be done in serie.
+                if quiet is False: print('Serial integration')
 
-                for i in range(len(grid)):                                  #Começo do loop
-                    result_x[i] = integral_x(self.Grid_parameters[i])       #Cálculo da integral em x
-                    result_y[i] = integral_y(self.Grid_parameters[i])       #Cálculo da integral em y
+                result_x = np.zeros([len(grid), 2])              #Where the results of the deflection at x are saved
+                result_y = np.zeros([len(grid), 2])              #Where the results of the deflection at y are saved
+
+                for i in range(len(grid)):                                  
+                    result_x[i] = integral_x(self.Grid_parameters[i])       #Deflection in x
+                    result_y[i] = integral_y(self.Grid_parameters[i])       #Deflection in y
                     
         elif self.method == "quadva":
-            #print("Integração usando quadva")
+            if quiet is False: print("Quadva integration")
 
-            result_x = np.zeros([len(grid), 3])              #Onde ficarão salvos os resultados da deflexão em x
-            result_y = np.zeros([len(grid), 3])              #Onde ficarão salvos os resultados da deflexão em y
+            result_x = np.zeros([len(grid), 3])              #Where the results of the deflection at x are saved
+            result_y = np.zeros([len(grid), 3])              #Where the results of the deflection at y are saved
 
          
-            #start = time.time()
-            #print("Entrou")
-            for i in range(len(grid)):                      #Começo do loop
-                result_x[i] = quadva(alphax, [0., 1.], args=(self.Grid_parameters[i]),epsrel=self.epsrel)   #Integral em x
-                result_y[i] = quadva(alphay, [0., 1.], args=(self.Grid_parameters[i]),epsrel=self.epsrel)   #Integral em y
-            #print(multiprocessing.current_process().name, time.time()-start)
+            start = time.time() #Time controle, if you want to test performance
+            for i in range(len(grid)):                      
+                result_x[i] = quadva(alphax, [0., 1.], args=(self.Grid_parameters[i]),epsrel=self.epsrel, epsabs=self.epsabs)   #Deflection in x
+                result_y[i] = quadva(alphay, [0., 1.], args=(self.Grid_parameters[i]),epsrel=self.epsrel, epsabs=self.epsabs)   #Deflection in y
+            #Print core name, and time computation of deflection angle
+            if quiet is False: print(multiprocessing.current_process().name, time.time()-start)
         else:
             return print("Invalid integration method")
 
 
-        #Atualizando a grid com o valor dos ângulos após deflexão
-        grid[:, 0] = ((self.const_factor*result_y[:,0])*u.rad).to(u.arcsec).value
-        grid[:, 1] = ((self.const_factor*result_x[:,0])*u.rad).to(u.arcsec).value
+        #Constant Factor from integral in deflection angles
+        critical_density = (c_Mpc**2/(4*np.pi*G_Mpc)) * (self.D_s/(self.D_ls * self.D_l))
+        const_factor = 1/(np.pi * critical_density * self.D_l**2)
+
+        const_factor = const_factor.value
+
+        #Updating the grid with the angle value after deflection
+        grid[:, 0] = ((const_factor*result_y[:,0])*u.rad).to(u.arcsec).value
+        grid[:, 1] = ((const_factor*result_x[:,0])*u.rad).to(u.arcsec).value
         
         
         
-        return ((1.0 + self.gamma))*grid
+        return (0.5 * (1.0 + self.gamma))*grid
     @property
     def is_MGE(self):
         return True
