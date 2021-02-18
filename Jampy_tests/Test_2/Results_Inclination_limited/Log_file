@@ -1,0 +1,7 @@
+In this test we limited the inclination between 0 and 90 deg.
+
+Also, we consider a  burn in fase with 1000 steps, already discarded.
+
+Moves used:
+
+moves=[(emcee.moves.DEMove(), 0.8), (emcee.moves.DEMove(gamma0=1.0), 0.20),]
