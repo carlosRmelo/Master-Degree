@@ -16,9 +16,9 @@ import autolens.plot as aplt
 #boundaries. [lower, upper]
 #Used during non-linear fit (Emcee).
 boundary = {'inc': [50, 140], 'beta': [-5, 5], 'ml': [0.5, 15],  
-                 'ml0': [0.5, 15], 'delta': [0.5, 2], 'lower': [0, 1],
+                 'ml0': [0.5, 15], 'delta': [0.1, 2], 'lower': [0, 1],
                  'log_rho_s': [6, 12], 'qDM': [0.2, 1], 'log_mbh':[7, 11],
-                 'mag_shear': [0, 0.1], 'phi_shear': [0, 180], 'gamma': [0, 2]}
+                 'mag_shear': [0, 0.1], 'phi_shear': [0, 180], 'gamma': [0, 4]}
 
 
 #Gaussian priors. [mean, sigma]
@@ -117,17 +117,17 @@ class Models(object):
                     return -np.inf
 
         elif self.ml_kind == 'gaussian':
-            if boundary['ml0'][0] < parsDic['ml0'] < boundary['ml0'][1]:
+            if boundary['ml0'][0] <= parsDic['ml0'] <= boundary['ml0'][1]:
                 pass
             else:
                 return -np.inf
             
-            if boundary['delta'][0] < parsDic['delta'] < boundary['delta'][1]:
+            if boundary['delta'][0] <= parsDic['delta'] <= boundary['delta'][1]:
                 pass
             else:
                 return -np.inf
 
-            if boundary['lower'][0] < parsDic['lower'] < boundary['lower'][1]:
+            if boundary['lower'][0] <= parsDic['lower'] <= boundary['lower'][1]:
                 pass
             else:
                 return -np.inf           
@@ -162,7 +162,7 @@ class Models(object):
 
             #Now check if there is inside the boundaries
             for i in range(len(beta)):
-                if boundary['beta'][0] < beta < boundary['beta'][1] :
+                if boundary['beta'][0] < beta[i] < boundary['beta'][1] :
                     pass
                 else:
                     return -np.inf
@@ -179,9 +179,9 @@ class Models(object):
                 -np.inf or 0.0
         """
         inc = np.radians(parsDic['inc'])
-        
+        qobs_star_dat = self.mass_profile.qobs_lum
         #Stellar
-        qintr_star = self.qobs_star_dat**2 - np.cos(inc)**2
+        qintr_star = qobs_star_dat**2 - np.cos(inc)**2
         if np.any(qintr_star <= 0):
             return -np.inf
         
@@ -240,7 +240,7 @@ class Models(object):
             return -np.inf
 
         for keys in keys.difference(excludes):
-            if boundary[keys][0] < parsDic[keys] < boundary[keys][1]:
+            if boundary[keys][0] <= parsDic[keys] <= boundary[keys][1]:
                 pass
             else:
                 return -np.inf
@@ -368,7 +368,7 @@ class Models(object):
         if self.beta_kind == 'scalar':
             return np.full_like(self.mass_profile.surf_lum, parsDic['beta'])
         elif self.beta_kind == 'vector':
-            assert parsDic['beta'] == self.mass_profile.surf_lum, "Number of betas doesn't match number of luminosity gaussians."
+            assert parsDic['beta'].size == self.mass_profile.surf_lum.size, "Number of betas doesn't match number of luminosity gaussians."
             return parsDic['beta']
     
     def Updt_Pyautolens(self,parsDic):
@@ -461,7 +461,7 @@ class Models(object):
         )
             chi2T = inversion.chi_squared_map.sum()
             
-            if self.quiet if False:
+            if self.quiet is False:
                 aplt.Inversion.subplot_inversion(inversion, 
                                                     include=aplt.Include(inversion_border=False,
                                                     inversion_pixelization_grid=False))

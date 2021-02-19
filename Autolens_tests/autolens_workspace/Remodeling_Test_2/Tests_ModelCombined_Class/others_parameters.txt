@@ -1,0 +1,29 @@
+Inclination [deg]: 60.0
+Distance [Mpc]: 16.5
+MBH [solar mass]:1.000000e+08
+Anisotropy: [0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3 0.3]
+Shear magnitude: 0.02,
+Shear angle [degree]: 142
+Mass-to-light [M_sun/L_sun]: 1.2
+Gamma: 1.0
+z_source: 2.1
+
+
+Sigma PSF [arcsec]: [0.6, 1.2]
+Normpsf: [0.7, 0.3]
+Pixel size [arcsec]: 0.8
+
+
+
+#Source galaxy model
+
+source_galaxy = al.Galaxy(
+    redshift=z_source,
+    bulge=al.lp.EllipticalSersic(
+        centre=(0, 0.8),
+        elliptical_comps=(0.3, 0.111111),
+        intensity=5.0,
+        effective_radius=0.5,
+        sersic_index=0.8,
+    ),
+)
