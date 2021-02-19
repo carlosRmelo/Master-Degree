@@ -1,7 +1,7 @@
 
 """
     Goal: 
-        Make Dynamical modeling + Lensing modeling with MGE mass model more easy. 
+        Make Dynamical modeling + Lensing modeling with MGE mass model easier. 
             Here we have defined the prior functions, parameters boundaries, and update for models. The principal ideia is make use this script with emcee.
 
         This script makes use of Pyautolens (https://pyautolens.readthedocs.io/en/latest/) and Jampy (https://pypi.org/project/jampy/).
@@ -635,31 +635,6 @@ class Models(object):
         lp = self.log_prior(parsDic)
 
         return lp + self.JAM_log_likelihood(parsDic) + self.Pyautolens_log_likelihood(parsDic)
-
-    def log_probability(self,pars):
-        """
-            Log-probability function for whole model WITHOUT dark matter.
-            Input:
-            ----------
-                pars: current values in the Emcee sample.
-            Output:
-            ---------
-                log probability for the combined model.
-        """
-
-        (ml, beta, inc, log_mbh, mag_shear, phi_shear, gamma) = pars
-        
-        parsDic = {'ml': ml, 'beta': beta, 'inc': inc,
-                    'log_mbh': log_mbh, 'mag_shear':mag_shear, 'phi_shear': phi_shear, 'gamma': gamma}
-        
-        #Checking boundaries
-        if not np.isfinite(self.check_boundary(parsDic)):
-            return -np.inf
-        #calculating the log_priors
-        lp = self.log_prior(parsDic)
-
-        return lp + self.JAM_log_likelihood(parsDic) + self.Pyautolens_log_likelihood(parsDic)
-
 
 
     def __call__(self, pars):
