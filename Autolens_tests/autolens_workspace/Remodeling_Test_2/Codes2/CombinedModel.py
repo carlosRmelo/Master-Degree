@@ -469,23 +469,165 @@ class Models(object):
         except:
             return -np.inf
 
-
-    def log_probability_DM(self,pars):
+    def Dic(self, pars):
         """
-            Log-probability function for whole model WITH dark matter.
-            Input:
-            ----------
-                pars: current values in the Emcee sample.
-            Output:
-            ---------
-                log probability for the combined model.
+        Build a parameter dictionary based on what inputs are set.
+        Input:
+        -----------
+            Parameters of emcee.
+        Output:
+        -----------
+            Dictionary with parameters for emcee.
         """
+        if has_dm is True:
 
-        (ml, beta, inc, log_mbh, mag_shear, phi_shear, gamma) = pars
+            if self.ml_kind == 'scalar':
+                if self.beta_kind == 'scalar':
+                    (ml, beta, inc, log_mbh, log_rho_s, qDM, mag_shear, phi_shear, gamma) = pars
+                    
+                    parsDic = {'ml': ml, 'beta': beta, 'inc': inc, 'log_mbh': log_mbh,
+                                'log_rho_s':log_rho_s, 'qDM':qDM, 'mag_shear':mag_shear,
+                                'phi_shear': phi_shear, 'gamma': gamma}
+                    return parsDic
+                elif self.beta_kind == 'vector':
+                    size = self.mass_profile.surf_lum.size   #Size of surf_lum
+
+                    ml   = pars[0]
+                    beta = pars[1:size+1]
+                    (inc, log_mbh, log_rho_s,
+                         qDM, mag_shear, phi_shear, gamma) = pars[beta.size+1:]
+                    
+                    parsDic = {'ml': ml, 'beta': beta, 'inc': inc, 'log_mbh': log_mbh,
+                                'log_rho_s':log_rho_s, 'qDM':qDM, 'mag_shear':mag_shear,
+                                'phi_shear': phi_shear, 'gamma': gamma}
+                    return parsDic
+
+            elif self.ml_kind == 'gradient':
+                if self.beta_kind == 'scalar':
+                    size = self.mass_profile.surf_lum.size   #Size of surf_lum
+
+                    ml = pars[0:size]
+                    (beta, inc, log_mbh, log_rho_s, qDM,
+                         mag_shear, phi_shear, gamma) = pars[ml.size:]
+                    
+                    parsDic = {'ml': ml, 'beta': beta, 'inc': inc, 'log_mbh': log_mbh,
+                                'log_rho_s':log_rho_s, 'qDM':qDM, 'mag_shear':mag_shear,
+                                'phi_shear': phi_shear, 'gamma': gamma}
+                    return parsDic
+                elif self.beta_kind == 'vector':
+                    size = self.mass_profile.surf_lum.size   #Size of surf_lum
+
+                    ml   = pars[0:size]
+                    beta = pars[ml.size:ml.size + size]
+                    (inc, log_mbh, log_rho_s,
+                         qDM, mag_shear, phi_shear, gamma) = pars[ml.size + beta.size:]
+                    
+                    parsDic = {'ml': ml, 'beta': beta, 'inc': inc, 'log_mbh': log_mbh,
+                                'log_rho_s':log_rho_s, 'qDM':qDM, 'mag_shear':mag_shear,
+                                'phi_shear': phi_shear, 'gamma': gamma}
+                    return parsDic
+
+            elif self.ml_kind == 'gaussian':
+                if self.beta_kind == 'scalar':
+                    (ml0, delta, lower, beta, inc, log_mbh, log_rho_s, qDM,
+                         mag_shear, phi_shear, gamma) = pars
+                    
+                    parsDic = {'ml0': ml0, 'delta':delta, 'lower':lower, 'beta': beta,
+                                 'inc': inc, 'log_mbh': log_mbh, 'log_rho_s':log_rho_s, 'qDM':qDM,
+                                 'mag_shear':mag_shear, 'phi_shear': phi_shear, 'gamma': gamma}
+                    return parsDic
+                elif self.beta_kind == 'vector':
+                    size = self.mass_profile.surf_lum.size   #Size of surf_lum
+
+                    ml0   = pars[0]
+                    delta = pars[1]
+                    lower = pars[2]
+                    beta  = pars[3:size+3]
+
+                    (inc, log_mbh, log_rho_s,
+                         qDM, mag_shear, phi_shear, gamma) = pars[3 + beta.size:]
+                    
+                    parsDic = {'ml0': ml0, 'delta':delta, 'lower':lower, 'beta': beta,
+                                 'inc': inc, 'log_mbh': log_mbh, 'log_rho_s':log_rho_s, 'qDM':qDM,
+                                 'mag_shear':mag_shear, 'phi_shear': phi_shear, 'gamma': gamma}
+                    return parsDic
+
+        elif has_dm is False:
+            if self.ml_kind == 'scalar':
+                if self.beta_kind == 'scalar':
+                    (ml, beta, inc, log_mbh, mag_shear, phi_shear, gamma) = pars
+                    
+                    parsDic = {'ml': ml, 'beta': beta, 'inc': inc, 'log_mbh': log_mbh,
+                                'mag_shear':mag_shear, 'phi_shear': phi_shear, 'gamma': gamma}
+                    return parsDic
+                elif self.beta_kind == 'vector':
+                    size = self.mass_profile.surf_lum.size   #Size of surf_lum
+
+                    ml   = pars[0]
+                    beta = pars[1:size+1]
+                    (inc, log_mbh, mag_shear, phi_shear, gamma) = pars[beta.size+1:]
+                    
+                    parsDic = {'ml': ml, 'beta': beta, 'inc': inc, 'log_mbh': log_mbh,
+                                'mag_shear':mag_shear, 'phi_shear': phi_shear, 'gamma': gamma}
+                    return parsDic
+
+            elif self.ml_kind == 'gradient':
+                if self.beta_kind == 'scalar':
+                    size = self.mass_profile.surf_lum.size   #Size of surf_lum
+
+                    ml = pars[0:size]
+                    (beta, inc, log_mbh, mag_shear, phi_shear, gamma) = pars[ml.size:]
+                    
+                    parsDic = {'ml': ml, 'beta': beta, 'inc': inc, 'log_mbh': log_mbh,
+                                'mag_shear':mag_shear, 'phi_shear': phi_shear, 'gamma': gamma}
+                    return parsDic
+                elif self.beta_kind == 'vector':
+                    size = self.mass_profile.surf_lum.size   #Size of surf_lum
+
+                    ml   = pars[0:size]
+                    beta = pars[ml.size:ml.size + size]
+                    (inc, log_mbh, mag_shear, phi_shear, gamma) = pars[ml.size + beta.size:]
+                    
+                    parsDic = {'ml': ml, 'beta': beta, 'inc': inc, 'log_mbh': log_mbh,
+                                'mag_shear':mag_shear, 'phi_shear': phi_shear, 'gamma': gamma}
+                    return parsDic
+
+            elif self.ml_kind == 'gaussian':
+                if self.beta_kind == 'scalar':
+                    (ml0, delta, lower, beta, inc, log_mbh,
+                         mag_shear, phi_shear, gamma) = pars
+                    
+                    parsDic = {'ml0': ml0, 'delta':delta, 'lower':lower, 'beta': beta,
+                                 'inc': inc, 'log_mbh': log_mbh, 'mag_shear':mag_shear,
+                                 'phi_shear': phi_shear, 'gamma': gamma}
+                    return parsDic
+                elif self.beta_kind == 'vector':
+                    size = self.mass_profile.surf_lum.size   #Size of surf_lum
+
+                    ml0   = pars[0]
+                    delta = pars[1]
+                    lower = pars[2]
+                    beta  = pars[3:size+3]
+
+                    (inc, log_mbh, mag_shear, phi_shear, gamma) = pars[3 + beta.size:]
+                    
+                    parsDic = {'ml0': ml0, 'delta':delta, 'lower':lower, 'beta': beta,
+                                 'inc': inc, 'log_mbh': log_mbh, 'mag_shear':mag_shear,
+                                 'phi_shear': phi_shear, 'gamma': gamma}
+                    return parsDic
+
+    def log_probability(self,pars):
+        """
+        Log-probability function for whole model WITH dark matter.
+        Input:
+        ----------
+            pars: current values in the Emcee sample.
+        Output:
+        ---------
+            log probability for the combined model.
+        """
         
-        parsDic = {'ml': ml, 'beta': beta, 'inc': inc,
-                    'log_mbh': log_mbh, 'mag_shear':mag_shear, 'phi_shear': phi_shear, 'gamma': gamma}
-        
+        parsDic = self.Dic(pars)
         #Checking boundaries
         if not np.isfinite(self.check_boundary(parsDic)):
             return -np.inf
@@ -521,7 +663,4 @@ class Models(object):
 
 
     def __call__(self, pars):
-        if has_dm is True:
-            return self.log_probability_DM(pars)
-        elif has_dm is False:
-            return self.log_probability(pars)
+        return self.log_probability(pars)
