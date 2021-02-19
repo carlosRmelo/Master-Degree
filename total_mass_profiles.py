@@ -434,7 +434,7 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
                                 surf_lum=None, sigma_lum=None, qobs_lum=None, ml=None,
                                 surf_dm=None, sigma_dm=None, qobs_dm=None,
                                 mbh=None, sigma_mbh=None, qobs_mbh=None,
-                                gamma = None, quiet=True):
+                                gamma=None, quiet=True):
         """
             Updates the model's parameter grid. Particularly useful when used in conjunction with Emcee.
             It is assumed that the classes MGE.MGE_comps and MGE.MGE_Grid_parameters have already been properly initialized.
