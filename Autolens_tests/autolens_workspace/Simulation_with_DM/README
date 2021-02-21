@@ -1,0 +1,5 @@
+here we simulate a velocity profile (for Jumpy) and a galaxy+arcs (for auto lens).
+
+In this example we include a dark matter component, represented by a pseudo-NFW profile. 
+
+				__This simulation is based on SDP.81 MGE decomposition.__

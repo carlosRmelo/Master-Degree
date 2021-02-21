@@ -1,0 +1,59 @@
+Input parameters for models
+----------------------------
+
+
+Jampy:
+MGE parametrizations:
+
+surf_lum, sigma_lum, qobs_lum = np.loadtxt("JAM_Input.txt", unpack=True)      #MGE decomposition
+surf_dm, sigma_dm , qobs_dm   = np.loadtxt("pseudo-NFW.txt", unpack=True)     #DM component
+norm_psf, sigma_psf           = np.loadtxt("MUSE_Psf_model.txt", unpack=True) #PSF
+
+
+
+Other parameters:
+
+z_l    = 0.299                                                         #Redshift
+D_l    = cosmo.angular_diameter_distance(z_l).value               #Distance to lens [Mpc] 
+mbh    = 1e9                                                           #mass of black hole [log10(M_sun)]
+beta   = np.array([-0.6, -2.5, -0.4, -1.5, 0.39, -0.32, 0.36, -1.36])  #anisotropy [ad]
+inc    = 77                                                            #inclination [deg]
+dm_int = 0.05 * (10**10)                                               #Intensity of DM (~ 20% of lum_mass)
+ml     = np.array([6, 4.5, 4, 3.5, 3, 2.5, 2, 1])                      #mass to light ratio
+pixsize = 0.2
+
+r = np.sqrt(xbin**2 + (ybin/np.cos(np.radians(inc)))**2) # Radius in the plane of the disk
+goodbins = r > 5  # Arbitrarily exclude the center to illustrate how to use goodbins
+
+___________________________________________________________________________________________________________________________________________
+
+Autolens:
+MGE parametrizations:
+
+surf_lum, sigma_lum, qobs_lum = np.loadtxt("JAM_Input.txt", unpack=True)      #MGE decomposition
+surf_dm, sigma_dm , qobs_dm   = np.loadtxt("pseudo-NFW.txt", unpack=True)     #DM component
+
+Other parameters:
+
+Lens:
+z_l    = 0.299                                                         #Lens Redshift
+z_s    = 3.150                                                         #Source Redshift 
+D_s    = cosmo.angular_diameter_distance(z_source).value               #Distance to Source [Mpc] 
+mbh    = 1e9                                                           #mass of black hole [log10(M_sun)]
+dm_int = 0.05 * (10**10)                                               #Intensity of DM (~ 20% of lum_mass)
+ml     = np.array([6, 4.5, 4, 3.5, 3, 2.5, 2, 1])                      #mass to light ratio
+shear_comp = al.convert.shear_elliptical_comps_from(magnitude=0.02, phi=88) #external shear
+
+Source:
+#Source galaxy
+source_galaxy = al.Galaxy(
+    redshift=z_s,
+    bulge=al.lp.EllipticalSersic(
+        centre=(0, 0.4),
+        elliptical_comps=(0.3, 0.111111),
+        intensity=5.0,
+        effective_radius=0.5,
+        sersic_index=0.8,
+    ),
+)
+
