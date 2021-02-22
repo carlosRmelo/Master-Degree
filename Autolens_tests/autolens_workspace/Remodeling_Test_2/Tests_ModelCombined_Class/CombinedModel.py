@@ -30,7 +30,7 @@ prior = {'gamma': [1.0, 0.5] }
 
 #Dark matter component
 """
-    By default we assume no dark matter component. If there is, you must call def has_DM function, giving it the name of table containing the MGE parametrization. This table should follow the following organization:
+   You must call def has_DM function always. If a is set False, there are no inclusion of DM. If a is set True, you should give the name of table containing the MGE parametrization. This table should follow the following organization:
 
     Frist column : mass surface density for each gaussian [M_sun/pc^2];
     Second column: sigma of each gaussian                 [arcsec];
@@ -39,7 +39,6 @@ prior = {'gamma': [1.0, 0.5] }
     If you want to include DM component in your non-linear search, the parametrization of dark matter profile should assume a central density (sometimes called called \rho_s) equal to one. 
     Until this time, only  pseudo-NFW  mass density profile  are accepted (eq. S1 of 10.1126/science.aao2469). This profile leeds two free parameters: central density (\rho_s) and the axial ratio (qDM).
 """
-has_dm = False
 
 
 #Gaussian ML function
@@ -274,9 +273,9 @@ class Models(object):
         
         return rst
 
-    def has_DM(self, filename):
+    def has_DM(self, a=False, filename=None):
         """
-        Includes dark matter component in your model.
+        Includes dark matter component in your model or not.
         Input:
         -----------------
         filename: str
@@ -286,12 +285,15 @@ class Models(object):
             Second column: sigma of each gaussian                 [arcsec];
             Third column : axial ratio for each gaussian          [ad]
         """
-        surf_DM_dat, sigma_DM_dat, qobs_DM_dat = np.loadtxt(filename, unpack=True)
+        if a is True:
+        	surf_DM_dat, sigma_DM_dat, qobs_DM_dat = np.loadtxt(filename, unpack=True)
 
-        self.surf_DM_dat  = surf_DM_dat
-        self.sigma_DM_dat = sigma_DM_dat
-        self.qobs_DM_dat  = qobs_DM_dat
-        has_dm     = True
+        	self.surf_DM_dat  = surf_DM_dat
+        	self.sigma_DM_dat = sigma_DM_dat
+        	self.qobs_DM_dat  = qobs_DM_dat
+        	self.has_dm       = True
+        elif a is False:
+        	self.has_dm       = False 
     
     def mass_to_light(self, ml_kind='scalar'):
         """
@@ -383,9 +385,9 @@ class Models(object):
         mbh_model   = 10**parsDic['log_mbh']
         gamma_model = parsDic['gamma']
 
-        if has_dm is True:
-            surf_dm_model = (10**parsDic['log_rho_s']) * surf_DM_dat
-            qDM_model     = np.ones(qDM_dat.shape)*parsDic['qDM']
+        if self.has_dm is True:
+            surf_dm_model = (10**parsDic['log_rho_s']) * self.surf_DM_dat
+            qDM_model     = np.ones(self.qobs_DM_dat.shape)*parsDic['qDM']
             
             self.mass_profile.MGE_Updt_parameters(ml=ml_model, mbh=mbh_model, gamma=gamma_model, 
                                                 surf_dm=surf_dm_model, qobs_dm=qDM_model)
@@ -406,11 +408,11 @@ class Models(object):
         gamma_model = parsDic['gamma']
         inc_model   = parsDic['inc']
 
-        if has_dm is True:
-            surf_dm_model = (10**parsDic['log_rho_s']) * surf_DM_dat
-            qDM_model     = np.ones(qDM_dat.shape)*parsDic['qDM']
+        if self.has_dm is True:
+            surf_dm_model = (10**parsDic['log_rho_s']) * self.surf_DM_dat
+            qDM_model     = np.ones(self.qobs_DM_dat.shape)*parsDic['qDM']
             
-            self.Jampy_model.upt(surf_dm=surf_DM_model, qobs_dm=qDM_model, inc=inc_model,
+            self.Jampy_model.upt(surf_dm=surf_dm_model, qobs_dm=qDM_model, inc=inc_model,
                      ml=ml_model, beta=beta_model, mbh=mbh_model)
         else:
             self.Jampy_model.upt(inc=inc_model, ml=ml_model, beta=beta_model, mbh=mbh_model)
@@ -479,7 +481,7 @@ class Models(object):
         -----------
             Dictionary with parameters for emcee.
         """
-        if has_dm is True:
+        if self.has_dm is True:
 
             if self.ml_kind == 'scalar':
                 if self.beta_kind == 'scalar':
@@ -552,7 +554,7 @@ class Models(object):
                                  'mag_shear':mag_shear, 'phi_shear': phi_shear, 'gamma': gamma}
                     return parsDic
 
-        elif has_dm is False:
+        elif self.has_dm is False:
             if self.ml_kind == 'scalar':
                 if self.beta_kind == 'scalar':
                     (ml, beta, inc, log_mbh, mag_shear, phi_shear, gamma) = pars
@@ -628,6 +630,8 @@ class Models(object):
         """
         
         parsDic = self.Dic(pars)
+        if self.quiet is False:
+            print("ParsDic", parsDic)
         #Checking boundaries
         if not np.isfinite(self.check_boundary(parsDic)):
             return -np.inf

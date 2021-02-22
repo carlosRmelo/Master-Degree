@@ -43,6 +43,7 @@ mbh    = 1e9                                                           #mass of 
 dm_int = 0.05 * (10**10)                                               #Intensity of DM (~ 20% of lum_mass)
 ml     = np.array([6, 4.5, 4, 3.5, 3, 2.5, 2, 1])                      #mass to light ratio
 shear_comp = al.convert.shear_elliptical_comps_from(magnitude=0.02, phi=88) #external shear
+gamma = 1.0 							         #ppn parameter
 
 Source:
 #Source galaxy
