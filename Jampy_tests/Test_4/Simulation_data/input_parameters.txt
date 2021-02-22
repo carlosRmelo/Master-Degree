@@ -1,0 +1,27 @@
+Input parameters for models
+----------------------------
+
+
+Jampy:
+MGE parametrizations:
+
+surf_lum, sigma_lum, qobs_lum = np.loadtxt("JAM_Input.txt", unpack=True)      #MGE decomposition
+norm_psf, sigma_psf           = np.loadtxt("MUSE_Psf_model.txt", unpack=True) #PSF
+
+
+
+Other parameters:
+
+z_l    = 0.299                                            #Redshift
+D_l    = cosmo.angular_diameter_distance(z_l).value                    #Distance to Lens [Mpc] 
+mbh    = 1e9                                                           #mass of black hole [log10(M_sun)]
+beta   = np.full_like(surf_lum, -0.55)                                 #anisotropy [ad]
+inc    = 77                                                            #inclination [deg]
+ml     = 8.42                                                          #mass to light ratio
+pixsize = 0.2								  #pixel size [arcsec/px]
+
+r = np.sqrt(xbin**2 + (ybin/np.cos(np.radians(inc)))**2) # Radius in the plane of the disk
+goodbins = r > 1  # Arbitrarily exclude the center to illustrate how to use goodbins
+
+___________________________________________________________________________________________________________________________________________
+
