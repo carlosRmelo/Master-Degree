@@ -1,0 +1,5 @@
+pseudo-NFW MGE parametrization.
+Ref: eq. S1 of 10.1126/science.aao2469
+
+For that, we need to provide the scale radius (r_s) of thr profile. 
+The reference above recommends 10 times the half light radius. If you have a MGE light decomposion of a galaxy, we can comput it with mge_half_light_isophote or mge_half_light_radius, provided by Cappellari. 

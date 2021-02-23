@@ -1,0 +1,11 @@
+We do exactly the same as __Rebuilding__ and __Simulation__ folders, but using a new kind of pseudo-NFW (NFW) parametrization.
+
+So, in principle, we should find the same results with a minimal differences.
+
+This new parametrization are described in .../GitHub/Master-Degree/pseudo-NFW.
+As we had used data from SDP.81 previously, we do so now as well.
+
+
+
+And it works very well! 
+							And faster  !!!!!!!!!!
