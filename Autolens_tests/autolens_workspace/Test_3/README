@@ -1,0 +1,6 @@
+We simulated a Vrms map using luminosity and dark component.
+After, we simulate a source galaxy and deflected it using this MGE mass model to generate gravitational arcs.
+
+Finally, we try to use Emcee to recovery the  initial parameters. To knhow:
+
+One ML, One beta, inclination, mbh, rho_s, r_s, mag_shear, phi_shear and gamma.

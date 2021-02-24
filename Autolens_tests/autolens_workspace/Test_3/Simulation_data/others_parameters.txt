@@ -1,0 +1,33 @@
+Inclination [deg]    		: 77.0
+MBH [solar mass]     		: 1e9
+Anisotropy           		: -0.55
+Shear magnitude      		: 0.02
+Shear angle [degree] 		: 88
+Mass-to-light [M_sun/L_sun]	: 7.77
+log_rho_s [M_sun/pc²]		: 8.698970004336019
+qDM				: 1.0
+Gamma				: 1.0
+z_l				: 0.299
+z_s				: 3.100
+
+
+
+Sigma PSF [pixels]: [1.1906013593, 2.1040488249, 4.1142713681]
+Normpsf   [counts]: [0.1027429633, 0.5256602350, 0.3715968017]
+Pixel size [arcsec]: 0.2
+
+
+
+#Source galaxy model
+
+
+source_galaxy = al.Galaxy(
+    redshift=z_s,
+    bulge=al.lp.EllipticalSersic(
+        centre=(0.0, -0.3),
+        elliptical_comps=(0.3, 0.111111),
+        intensity=5.0,
+        effective_radius=0.5,
+        sersic_index=0.8,
+    ),
+)
