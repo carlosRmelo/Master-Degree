@@ -15,17 +15,17 @@ import autolens.plot as aplt
 
 #boundaries. [lower, upper]
 #Used during non-linear fit (Emcee).
-boundary = {'inc': [50, 140], 'beta': [-5, 5], 'ml': [0.5, 15],  
+boundary = {'inc': [50, 90], 'beta': [-5, 5], 'ml': [0.5, 15],  
                  'ml0': [0.5, 15], 'delta': [0.1, 2], 'lower': [0, 1],
                  'log_rho_s': [6, 12], 'qDM': [0.2, 1], 'log_mbh':[7, 11],
-                 'mag_shear': [0, 0.1], 'phi_shear': [0, 180], 'gamma': [0, 2]}
+                 'mag_shear': [0, 0.1], 'phi_shear': [0, 179], 'gamma': [0, 2]}
 
 
 #Gaussian priors. [mean, sigma]
 """
     For now, only gaussian prior is for gamma, because we have a prior information about it. All other parameters have flat (or non-informative) priors.
 """
-prior = {'gamma': [1.0, 0.5] }
+prior = {'gamma': [1.0, 0.2] }
 
 
 #Dark matter component

@@ -1,0 +1,5 @@
+In this folder we implement different models to fit SDP.81 data, which includes both dynamical and lensing data.
+
+Each model is described in your own folder.
+
+All the reduction pre process are made on SDP.81/Codes folder.

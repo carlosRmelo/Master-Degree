@@ -81,9 +81,9 @@ with MPIPool() as pool:
        #This quantities are our unknown parameters
     inc       = 75                              #Inclination [deg]
     mbh       = 1e10                            #Mass of black hole [M_sun]
-    beta      = np.full_like(surf_lum, 0.0)     #Anisotropy
+    beta      = np.full_like(surf_lum, 0.3)     #Anisotropy
     ml        = 10                              #Mass to light ratio [M_sun/L_sun]
-    mag_shear = 0.0                             #Shear magnitude
+    mag_shear = 0.01                            #Shear magnitude
     phi_shear = 100.0                             #Shear angle
     rho_s     = 1e10                            #dark matter intensity
     qdm       = np.full_like(qobs_dm, 0.5)      #dark matter axial ratio
@@ -123,8 +123,6 @@ with MPIPool() as pool:
     mass_profile.MGE_comps(z_l=z_lens, z_s=z_source, 
                        surf_lum=surf_lum, sigma_lum=sigma_lum, qobs_lum=qobs_lum, ml=ml,
                        mbh=mbh, surf_dm =rho_s * surf_dm, sigma_dm=sigma_dm, qobs_dm=qdm)
-        #Grid
-    mass_profile.MGE_Grid_parameters(masked_image.grid)
 
     #--------------------------------------------------------------------------------------------------#
     # COMBINED MODEL
@@ -144,18 +142,27 @@ with MPIPool() as pool:
     """
 
     #In order: ML, beta, inc, log_mbh, log_rho_s, qDM, mag_shear, phi_shear, gamma
+    """
     p0 = np.array([ml, beta[0], inc, np.log10(mbh), np.log10(rho_s), qdm[0], mag_shear, phi_shear, gamma])
+    model(p0)
 
     #Finally we initialize the walkers arround these positions above.
     nwalkers = 120                                                   #Number of walkers
-    pos = p0 +  np.random.randn(nwalkers, p0.size)                  #Initial guess of walkers
+    pos = p0 +  (p0 * (0.5)) * np.random.randn(nwalkers, p0.size)                  #Initial guess of walkers
+    print(pos)
     nwalkers, ndim = pos.shape                                      #Number of walkers/dimensions
+    """
+    #Lets try other type of initial position, spreading the the walkers uniformly over the range of parameters.
+    nwalkers = 120                                                   #Number of walkers
+    pos = np.random.uniform(low=[0.5, -3, 50, 6, 6, 0.2, 0, 0, 0], high=[15, 3, 90, 10, 12, 1, 0.1, 180, 2], size=[nwalkers, 9])
+    nwalkers, ndim = pos.shape                                      #Number of walkers/dimensions
+
     """
         We save the results in a table.
         This table marks the number of iterations, the mean acceptance fraction,the running time, and the mean accep. fraction of last 100 its. 
         
     """
-    model(p0)
+
     np.savetxt('Output_LogFile.txt', np.column_stack([0, 0, 0, 0]),
                                 fmt=b'	%i	 %e			 %e     %e', 
                                 header="Output table for the combined model: Dynamic.\n Iteration	 Mean acceptance fraction	 Processing Time    Last 100 Mean Accp.")
@@ -177,23 +184,19 @@ with MPIPool() as pool:
     #Burn in fase
     burnin = 1                           #Number os burn in steps
     print("Burn in with %i steps"%burnin)
+    start = time.time()
     state = sampler.run_mcmc(pos, nsteps=burnin, progress=True)
+    print("\n")
+    print("Burn in elapsed time:", time.time() - start)
     sampler.reset()
     print("\n")
     print("End of burn-in fase")
     #End of burn in fase
 
     nsteps = 500000                          #Number of walkes 
-
-     # We'll track how the average autocorrelation time estimate changes
-    index = 0
-    autocorr = np.empty(nsteps)
-
-     # This will be useful to testing convergence
-    old_tau = np.inf
-
-     # This saves how many walkers have been accepted in the last 100 steps
+    # This saves how many walkers have been accepted in the last 100 steps
     old_accp = np.zeros(nwalkers,)
+
 
     # Now we'll sample for up to max_n steps
     start = time.time()
@@ -212,14 +215,67 @@ with MPIPool() as pool:
         old_accp = new_accp - old_accp                  #Number of accepted in the last 100 steps
         mean_accp_100 = np.mean(old_accp/float(100))    #Mean accp fraction of last 100 steps
 
+        #Update a table output with acceptance
+        table = np.loadtxt("Output_LogFile.txt")
 
-        
-        # Compute the autocorrelation time so far
-        # Using tol=0 means that we'll always get an estimate even
-        # if it isn't trustworthy
-        tau = sampler.get_autocorr_time(tol=0)
-        autocorr[index] = np.mean(tau)
-        index += 1
+        iteration = sampler.iteration
+        accept = np.mean(sampler.acceptance_fraction)
+        total_time = time.time() - global_time
+        upt = np.column_stack([iteration, accept, total_time, mean_accp_100])
+
+        np.savetxt('Output_LogFile.txt', np.vstack([table, upt]),
+                                fmt=b'	%i	 %e			 %e             %e', 
+                            header="Output table for the combined model: Dynamic.\n Iteration	 Mean acceptance fraction	 Processing Time    Last 100 Mean Accp. Fraction")
+
+        log_prob = sampler.get_log_prob()
+        check = log_prob > -6000
+        if True in check:
+            a         = np.where(log_prob > -6000)
+            best_log  = np.where(log_prob ==  log_prob[a].max())
+            chain     = sampler.get_chain()   
+            best_walk = chain[best_log][0]
+            break
+    print("\n")
+    print("A good walker spotted! Your likelihood is:", log_prob[a].max())
+    print("\n")
+    end = time.time()
+    multi_time = end - start
+    print("Elapsed time", multi_time)
+    print("\n")
+    print("Restarting sample around it!")
+
+
+
+
+
+     # We'll track how the average autocorrelation time estimate changes
+    index = 0
+    autocorr = np.empty(nsteps)
+     # This will be useful to testing convergence
+    old_tau = np.inf
+     # This saves how many walkers have been accepted in the last 100 steps
+    old_accp = np.zeros(nwalkers,)
+
+    nsteps = 500000                          #Number of walkes 
+
+    # Now we'll sample for up to max_n steps
+    start = time.time()
+    global_time = time.time()
+
+    
+    new_state =  best_walk  + 1e-2 * np.random.randn(nwalkers, ndim)
+    for sample in sampler.sample(new_state, iterations=nsteps, progress=True):
+        # Only check convergence every 100 steps
+        if sampler.iteration % 100:
+            continue
+        print("\n")
+        print("##########################")
+
+        #Compute how many walkes have been accepted during the last 100 steps
+
+        new_accp = sampler.backend.accepted             #Total number of accepted
+        old_accp = new_accp - old_accp                  #Number of accepted in the last 100 steps
+        mean_accp_100 = np.mean(old_accp/float(100))    #Mean accp fraction of last 100 steps
 
         #Update a table output with acceptance
         table = np.loadtxt("Output_LogFile.txt")
@@ -233,6 +289,12 @@ with MPIPool() as pool:
                                 fmt=b'	%i	 %e			 %e             %e', 
                             header="Output table for the combined model: Dynamic.\n Iteration	 Mean acceptance fraction	 Processing Time    Last 100 Mean Accp. Fraction")
 
+        # Compute the autocorrelation time so far
+        # Using tol=0 means that we'll always get an estimate even
+        # if it isn't trustworthy
+        tau = new_sampler.get_autocorr_time(tol=0)
+        autocorr[index] = np.mean(tau)
+        index += 1
 
         # Check convergence
         converged = np.all(tau * 100 < sampler.iteration)

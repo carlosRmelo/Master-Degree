@@ -1,0 +1,13 @@
+This model is the simplest model possible (with inclusion of dark matter).
+Here we include a dark matter component and a external shear to gravitational lensing.
+
+Then, in this model we have a total of 9 free parameters:
+	- One mass-to-light ratio
+	- One beta (anisotropy) 
+	- Inclination
+	- Black hole mass 
+	- Dark matter intensity
+	- Dark matter axial ratio
+	- Shear intensity 
+	- Shear angle
+	- Gamma
