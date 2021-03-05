@@ -25,7 +25,7 @@ boundary = {'inc': [50, 90], 'beta': [-3, 3], 'ml': [0.5, 15],
 """
     For now, only gaussian prior is for gamma, because we have a prior information about it. All other parameters have flat (or non-informative) priors.
 """
-prior = {'gamma': [1.0, 0.2] }
+prior = {'gamma': [1.0, 0.04] }
 
 
 #Dark matter component
