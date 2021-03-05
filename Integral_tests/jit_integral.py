@@ -48,7 +48,7 @@ def alpha_y(tau1,
     return tau1*np.sum(arr, 1)
 
 M, sigma, q = np.loadtxt("Input.txt", unpack=True)
-grid = np.loadtxt("grid.txt")
+grid = np.loadtxt("Grid_sdp.txt")
 grid = (grid*u.arcsec).to(u.rad).value
 
 result_x = np.zeros([len(grid), 3])              #Onde ficarão salvos os resultados da deflexão em x
@@ -69,3 +69,6 @@ for i in range(len(grid)):                      #Começo do loop
     result_x[i] = quadva(alpha_x, [0., 1.], args=(grid[i][0], grid[i][1], M, sigma, q))   #Integral em x
     result_y[i] = quadva(alpha_y, [0., 1.], args=(grid[i][0], grid[i][1], M, sigma, q))   #Integral em y
 print("All grid elapsed time:", time.time() - start)
+
+
+np.savetxt("jit_result.txt",np.column_stack([result_y[:,0], result_x[:,0]]), header="alpha_y \t\t alpha_x", fmt="%.10e \t %.10e")
