@@ -171,82 +171,20 @@ with MPIPool() as pool:
     print("Workers nesse job:", pool.workers)
     print("Start")
 
-    #Backup
+    #Frist we read the last sample
     filename = "simulation.h5"
-    backend = emcee.backends.HDFBackend(filename)
-    backend.reset(nwalkers, ndim)
-    moves=[(emcee.moves.DEMove(), 0.8), (emcee.moves.DEMove(gamma0=1.0), 0.20)]
+    read = emcee.backends.HDFBackend(filename)
+    nwalkers, ndim = read.shape
 
-    #Initialize the sampler
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, model, pool=pool,
-                                     backend=backend, moves=moves)
-    
-    #Burn in fase
-    burnin = 1                           #Number os burn in steps
-    print("Burn in with %i steps"%burnin)
-    start = time.time()
-    state = sampler.run_mcmc(pos, nsteps=burnin, progress=True)
-    print("\n")
-    print("Burn in elapsed time:", time.time() - start)
+    #Initialize the new sampler
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, model, pool=pool, backend=read)
+        #and get the last position
+    state = sampler.get_last_sample()
     sampler.reset()
-    print("\n")
-    print("End of burn-in fase")
-    #End of burn in fase
+    read.reset(nwalkers,ndim)
+    
 
     nsteps = 500000                          #Number of walkes 
-    # This saves how many walkers have been accepted in the last 100 steps
-    old_accp = np.zeros(nwalkers,)
-
-
-    # Now we'll sample for up to max_n steps
-    start = time.time()
-    global_time = time.time()
-
-    for sample in sampler.sample(state, iterations=nsteps, progress=True):
-        # Only check convergence every 100 steps
-        if sampler.iteration % 100:
-            continue
-        print("\n")
-        print("##########################")
-
-        #Compute how many walkes have been accepted during the last 100 steps
-
-        new_accp = sampler.backend.accepted             #Total number of accepted
-        old_accp = new_accp - old_accp                  #Number of accepted in the last 100 steps
-        mean_accp_100 = np.mean(old_accp/float(100))    #Mean accp fraction of last 100 steps
-
-        #Update a table output with acceptance
-        table = np.loadtxt("Output_LogFile.txt")
-
-        iteration = sampler.iteration
-        accept = np.mean(sampler.acceptance_fraction)
-        total_time = time.time() - global_time
-        upt = np.column_stack([iteration, accept, total_time, mean_accp_100])
-
-        np.savetxt('Output_LogFile.txt', np.vstack([table, upt]),
-                                fmt=b'	%i	 %e			 %e             %e', 
-                            header="Output table for the combined model: Dynamic.\n Iteration	 Mean acceptance fraction	 Processing Time    Last 100 Mean Accp. Fraction")
-
-        log_prob = sampler.get_log_prob()
-        check = log_prob > -6000
-        if True in check:
-            a         = np.where(log_prob > -6000)
-            best_log  = np.where(log_prob ==  log_prob[a].max())
-            chain     = sampler.get_chain()   
-            best_walk = chain[best_log][0]
-            break
-    print("\n")
-    print("A good walker spotted! Your likelihood is:", log_prob[a].max())
-    print("\n")
-    end = time.time()
-    multi_time = end - start
-    print("Elapsed time", multi_time)
-    print("\n")
-    print("Restarting sample around it!")
-
-
-
-
 
      # We'll track how the average autocorrelation time estimate changes
     index = 0
@@ -256,15 +194,13 @@ with MPIPool() as pool:
      # This saves how many walkers have been accepted in the last 100 steps
     old_accp = np.zeros(nwalkers,)
 
-    nsteps = 500000                          #Number of walkes 
 
     # Now we'll sample for up to max_n steps
     start = time.time()
     global_time = time.time()
 
     
-    new_state =  best_walk  + 1e-2 * np.random.randn(nwalkers, ndim)
-    for sample in sampler.sample(new_state, iterations=nsteps, progress=True):
+    for sample in sampler.sample(state, iterations=nsteps, progress=True):
         # Only check convergence every 100 steps
         if sampler.iteration % 100:
             continue
