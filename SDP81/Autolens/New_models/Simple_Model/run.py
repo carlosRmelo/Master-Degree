@@ -109,7 +109,7 @@ with MPIPool() as pool:
     )
 
     mask_custom = al.Mask.from_fits(
-        file_path=f"{data_folder}new_mask.fits", hdu=1, pixel_scales=imaging.pixel_scales
+        file_path=f"{data_folder}mask2.fits", pixel_scales=imaging.pixel_scales
     )
 
     masked_imaging = al.MaskedImaging(imaging=imaging, mask=mask_custom)
@@ -177,6 +177,15 @@ with MPIPool() as pool:
     sampler.reset()
     print("\n")
     print("End of burn-in fase")
+
+    print("\n")
+    print("Testing velocity of 1 step with %i walkers."%nwalkers)
+    start = time.time()
+    state = sampler.run_mcmc(pos, nsteps=burnin, progress=True)
+    print("\n")
+    print("Test elapsed time:", time.time() - start)
+    sampler.reset()
+    print("\n")
     #End of burn in fase
 
     nsteps = 500000                          #Number of walkes 
