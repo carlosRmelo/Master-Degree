@@ -140,7 +140,7 @@ with MPIPool() as pool:
     #In order: ML, beta, inc, log_mbh, log_rho_s, qDM, mag_shear, phi_shear, gamma
     nwalkers = 120                                                  #Number of walkers
     #We distribute the initial position of walkers using a uniform distribution over all the possible values.
-    pos = np.random.uniform(low=[0.5, -3, 50, 6, 6, 0.2, 0, 0, 0], high=[15, 3, 90, 10, 12, 1, 0.1, 179, 2], size=[nwalkers, 9])
+    pos = np.random.uniform(low=[0.5, -3, 50, 6, 6, 0.5, 0, 10, 0.8], high=[15, 3, 90, 10, 12, 1, 0.1, 150, 1.2], size=[nwalkers, 9])
     nwalkers, ndim = pos.shape                                      #Number of walkers/dimensions
 
     """
@@ -188,7 +188,7 @@ with MPIPool() as pool:
     print("\n")
     #End of burn in fase
 
-    nsteps = 500000                          #Number of walkes 
+    nsteps = 1                          #Number of walkes 
 
     # We'll track how the average autocorrelation time estimate changes
     index = 0
@@ -231,7 +231,7 @@ with MPIPool() as pool:
         # Compute the autocorrelation time so far
         # Using tol=0 means that we'll always get an estimate even
         # if it isn't trustworthy
-        tau = new_sampler.get_autocorr_time(tol=0)
+        tau = sampler.get_autocorr_time(tol=0)
         autocorr[index] = np.mean(tau)
         index += 1
 

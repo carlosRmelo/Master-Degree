@@ -136,53 +136,41 @@ with MPIPool() as pool:
     model.has_DM(a=True,filename="SDP81_pseudo-DM.txt") #Setting Dark matter component
     #--------------------------------------------------------------------------------------------------#
     #  EMCEE
-    """
-        Pay close attention to the order in which the components are added. 
-        They must follow the log_probability unpacking order.
-    """
-
-    #In order: ML, beta, inc, log_mbh, log_rho_s, qDM, mag_shear, phi_shear, gamma
-    """
-    p0 = np.array([ml, beta[0], inc, np.log10(mbh), np.log10(rho_s), qdm[0], mag_shear, phi_shear, gamma])
-    model(p0)
-
-    #Finally we initialize the walkers arround these positions above.
-    nwalkers = 120                                                   #Number of walkers
-    pos = p0 +  (p0 * (0.5)) * np.random.randn(nwalkers, p0.size)                  #Initial guess of walkers
-    print(pos)
-    nwalkers, ndim = pos.shape                                      #Number of walkers/dimensions
-    """
-    #Lets try other type of initial position, spreading the the walkers uniformly over the range of parameters.
-    nwalkers = 120                                                   #Number of walkers
-    pos = np.random.uniform(low=[0.5, -3, 50, 6, 6, 0.2, 0, 0, 0], high=[15, 3, 90, 10, 12, 1, 0.1, 180, 2], size=[nwalkers, 9])
-    nwalkers, ndim = pos.shape                                      #Number of walkers/dimensions
+   
 
     """
         We save the results in a table.
         This table marks the number of iterations, the mean acceptance fraction,the running time, and the mean accep. fraction of last 100 its. 
         
     """
-
-    np.savetxt('Output_LogFile.txt', np.column_stack([0, 0, 0, 0]),
-                                fmt=b'	%i	 %e			 %e     %e', 
-                                header="Output table for the combined model: Dynamic.\n Iteration	 Mean acceptance fraction	 Processing Time    Last 100 Mean Accp.")
-
     #Print the number os cores/workers
     print("Workers nesse job:", pool.workers)
     print("Start")
 
     #Frist we read the last sample
-    filename = "simulation.h5"
+    filename = "simulation (run original).h5"
     read = emcee.backends.HDFBackend(filename)
+    print(read.shape)
     nwalkers, ndim = read.shape
 
+    moves=[(emcee.moves.DEMove( (2.38 / np.sqrt(2 * ndim)) * 0.1), 0.90), (emcee.moves.DEMove(), 0.10)]
     #Initialize the new sampler
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, model, pool=pool, backend=read)
-        #and get the last position
-    state = sampler.get_last_sample()
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, model, pool=pool, backend=read, moves=moves)
+        #and get the  positions, discating the burn in fase
+    tau = read.get_autocorr_time(tol=0)
+    burnin = int(2 * np.max(tau))
+    thin = int(0.5 * np.min(tau))
+    state = read.get_chain(discard=burnin, flat=True,thin=thin)
     sampler.reset()
     read.reset(nwalkers,ndim)
-    
+
+    best_sample = np.zeros(ndim)
+
+    for i in range(ndim):
+        mcmc = np.percentile(state[:, i], [16, 50, 84])
+        best_sample[i] = mcmc[1]
+    print(best_sample)
+    pos = best_sample + 1e-3 * np.random.randn(nwalkers, ndim)
 
     nsteps = 500000                          #Number of walkes 
 
@@ -200,7 +188,7 @@ with MPIPool() as pool:
     global_time = time.time()
 
     
-    for sample in sampler.sample(state, iterations=nsteps, progress=True):
+    for sample in sampler.sample(pos, iterations=nsteps, progress=True):
         # Only check convergence every 100 steps
         if sampler.iteration % 100:
             continue

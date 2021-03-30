@@ -398,7 +398,7 @@ class JAM():
    
     def run(self, flux_obs = None, nang=10, nrad=20, quiet = True, step=0.,
                  plot = False, vmax = None, vmin = None, nodots = True,
-                    colorbar = True, linescolor = 'b', cmap=plt.cm.hot, **kwargs):
+                    colorbar = True, linescolor = 'b', cmap='sauron', **kwargs):
         """
             Run Jampy Rms Model.
 

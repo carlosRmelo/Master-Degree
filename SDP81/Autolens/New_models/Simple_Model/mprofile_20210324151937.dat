@@ -1,0 +1,2 @@
+CMDLINE mpiexec -n --oversubscribe 6 python run.py
+MEM 0.945312 1616609977.7817
