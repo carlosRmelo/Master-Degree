@@ -17,8 +17,8 @@ import autolens.plot as aplt
 #Used during non-linear fit (Emcee).
 boundary = {'inc': [50, 90], 'beta': [-3, 3], 'ml': [0.5, 15],  
                  'ml0': [0.5, 15], 'delta': [0.1, 2], 'lower': [0, 1],
-                 'log_rho_s': [6, 12], 'qDM': [0.2, 1], 'log_mbh':[7, 11],
-                 'mag_shear': [0, 0.1], 'phi_shear': [0, 180], 'gamma': [0, 2]}
+                 'log_rho_s': [-5, 0], 'qDM': [0.5, 1], 'log_mbh':[7, 11],
+                 'mag_shear': [0, 0.1], 'phi_shear': [0, 179], 'gamma': [0.8, 1.2]}
 
 
 #Gaussian priors. [mean, sigma]

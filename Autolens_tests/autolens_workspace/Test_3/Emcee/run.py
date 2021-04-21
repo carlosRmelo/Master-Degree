@@ -57,7 +57,7 @@ with MPIPool() as pool:
         #Reading MGE inputs
             #attention to units
     surf_lum, sigma_lum, qobs_lum = np.loadtxt("JAM_Input.txt", unpack=True)          #MGE decomposition
-    surf_dm, sigma_dm , qobs_dm   = np.loadtxt("SDP81_pseudo-DM.txt", unpack=True)    #DM component
+    surf_dm, sigma_dm , qobs_dm   = np.loadtxt("SphNFW_2e3arcsec.txt", unpack=True)    #DM component
     norm_psf, sigma_psf           = np.loadtxt("MUSE_Psf_model.txt", unpack=True)     #PSF
     xbin, ybin, vrms              = np.loadtxt("vrms_data.txt", unpack=True)          #Vrms data
     
@@ -85,14 +85,14 @@ with MPIPool() as pool:
     ml        = 10                              #Mass to light ratio [M_sun/L_sun]
     mag_shear = 0.01                            #Shear magnitude
     phi_shear = 100.0                             #Shear angle
-    rho_s     = 1e10                            #dark matter intensity
+    rho_s     = 0.4                            #dark matter intensity
     qdm       = np.full_like(qobs_dm, 0.5)      #dark matter axial ratio
     gamma     = 1.0                             #Gamma
 
     #--------------------------------------------------------------------------------------------------#
     # JAMPY MODEL
 
-    Jam_model = JAM(ybin=ybin, xbin=xbin, inc=inc, distance=D_l.value, mbh=mbh, beta=beta, rms=vrms,
+    Jam_model = JAM(ybin=ybin*muse_pixsize, xbin=xbin*muse_pixsize, inc=inc, distance=D_l.value, mbh=mbh, beta=beta, rms=vrms,
                    normpsf=norm_psf, sigmapsf=sigma_psf*muse_pixsize, pixsize=muse_pixsize)
 
         #Add Luminosity component
@@ -112,10 +112,10 @@ with MPIPool() as pool:
         pixel_scales=0.1,
     )
 
-    mask = al.Mask.circular_annular(centre=(0.0, -0.2), inner_radius=1., outer_radius=2.3,
-                              pixel_scales=imaging.pixel_scales, shape_2d=imaging.shape_2d) #Create a mask
+    mask_custom = al.Mask.from_fits(
+    file_path=f"{data_folder}/new_mask.fits", hdu=1, pixel_scales=imaging.pixel_scales)
 
-    masked_image = al.MaskedImaging(imaging=imaging, mask=mask, inversion_uses_border=True) #Masked image
+    masked_image = al.MaskedImaging(imaging=imaging, mask=mask_custom, inversion_uses_border=True) #Masked image
 
     mass_profile = al.mp.MGE()
 
@@ -129,11 +129,11 @@ with MPIPool() as pool:
 
         #Just remembering, by default the model does not include dark matter.
     model = CombinedModel.Models(Jampy_model=Jam_model, mass_profile=mass_profile,
-                                 masked_imaging=masked_image, quiet=True)
+                                 masked_imaging=masked_image, quiet=False)
 
     model.mass_to_light(ml_kind='scalar')               #Setting gradient ML
     model.beta(beta_kind='scalar')                      #Seting vector anisotropy
-    model.has_DM(a=True,filename="SDP81_pseudo-DM.txt") #Setting Dark matter component
+    model.has_DM(a=True,filename="SphNFW_2e3arcsec.txt") #Setting Dark matter component
     #--------------------------------------------------------------------------------------------------#
     #  EMCEE
     """
@@ -154,8 +154,9 @@ with MPIPool() as pool:
     """
     #Lets try other type of initial position, spreading the the walkers uniformly over the range of parameters.
     nwalkers = 120                                                   #Number of walkers
-    pos = np.random.uniform(low=[0.5, -3, 50, 6, 6, 0.5, 0, 10, 0.8], high=[15, 3, 90, 10, 12, 1, 0.1, 120, 1.1], size=[nwalkers, 9])
+    pos = np.random.uniform(low=[0.5, -3, 50, 6, -2, 0.5, 0, 10, 0.8], high=[15, 3, 90, 10, 0.1, 1, 0.1, 120, 1.1], size=[nwalkers, 9])
     nwalkers, ndim = pos.shape                                      #Number of walkers/dimensions
+    model(np.array([5.0, 0.35, 60, 9, -1.12, 1.0, 0.02, 88, 1.0]))
 
     """
         We save the results in a table.
@@ -193,7 +194,7 @@ with MPIPool() as pool:
     print("End of burn-in fase")
     #End of burn in fase
 
-    nsteps = 1                          #Number of walkes 
+    nsteps = 50000                          #Number of walkes 
     # This saves how many walkers have been accepted in the last 100 steps
     old_accp = np.zeros(nwalkers,)
 

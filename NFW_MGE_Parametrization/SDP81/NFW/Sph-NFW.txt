@@ -1,0 +1,35 @@
+# %ECSV 0.9
+# ---
+# datatype:
+# - {name: i, unit: solMass / pc2, datatype: float64}
+# - {name: s, unit: arcsec, datatype: float64}
+# - {name: q, datatype: float64, description: projected flattening}
+# meta: !!omap
+# - __serialized_columns__:
+#     i:
+#       __class__: astropy.units.quantity.Quantity
+#       value: !astropy.table.SerializedColumn {name: i}
+#     s:
+#       __class__: astropy.units.quantity.Quantity
+#       value: !astropy.table.SerializedColumn {name: s}
+# schema: astropy-2.0
+i s q
+3.60388e+03			 5.07718e-07		 1.00000e+00
+3.53197e+03			 1.15613e-06		 1.00000e+00
+3.50610e+03			 2.60997e-06		 1.00000e+00
+3.48320e+03			 5.85914e-06		 1.00000e+00
+3.46295e+03			 1.30876e-05		 1.00000e+00
+3.44581e+03			 2.91073e-05		 1.00000e+00
+3.43205e+03			 6.45045e-05		 1.00000e+00
+3.42171e+03			 1.42550e-04		 1.00000e+00
+3.41456e+03			 3.14391e-04		 1.00000e+00
+3.41007e+03			 6.92457e-04		 1.00000e+00
+3.40732e+03			 1.52392e-03		 1.00000e+00
+3.40499e+03			 3.35187e-03		 1.00000e+00
+3.40149e+03			 7.36774e-03		 1.00000e+00
+3.39534e+03			 1.61774e-02		 1.00000e+00
+3.38743e+03			 3.54595e-02		 1.00000e+00
+3.40065e+03			 7.77009e-02		 1.00000e+00
+3.52709e+03			 1.72589e-01		 1.00000e+00
+4.08088e+03			 4.09787e-01		 1.00000e+00
+7.81473e+03			 1.41353e+00		 1.00000e+00

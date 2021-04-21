@@ -530,7 +530,7 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
             return print("Invalid integration method")
 
         #Constant Factor from integral in deflection angles
-        critical_density = (c_Mpc**2/(4*np.pi*G_Mpc)) * (self.D_s/(self.D_ls * self.D_l))
+        critical_density = (c_Mpc**2/(4*np.pi*G_Mpc)) * (self.D_l/(self.D_ls * self.D_s))
         const_factor = 1/(np.pi * critical_density * self.D_l**2)
 
         const_factor = const_factor.value
