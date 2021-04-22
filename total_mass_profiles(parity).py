@@ -187,8 +187,22 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
         self.processes = processes
         self.method    = method
         self.gamma     = gamma
+        self.analytic_profile = None
     
-        	
+
+    def Analytic_Model(self,
+                            analytic_profile = None):
+        """
+        Analytical Mass profile
+        ------------------------
+        Includes an analytical mass profile in the lens mass model. Until now, only analytical models already implemented in Pyautolens can be used. Besides that, only the deflection angle can be computed.
+
+        Input:
+        analytic_profile: Pyautolens mass profile
+            Pyautolens mass profile describing the mass for lensing computation.
+        """
+
+        self.analytic_profile = analytic_profile
 
 
     def MGE_comps(self, z_l, z_s,
@@ -447,6 +461,9 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
         quiet: Boolean
             If False, print steps (integrator,  number of cores, ...)
         """
+
+        if self.analytic_profile is not None:
+            analytical_deflection = self.analytic_profile.deflections_from_grid(grid)
         
         
         
@@ -539,8 +556,10 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
         grid[:, 0] = ((const_factor*grid_result[:, 0])*u.rad).to(u.arcsec).value
         grid[:, 1] = ((const_factor*grid_result[:, 1])*u.rad).to(u.arcsec).value
         
-        
-        return (0.5 * (1.0 + self.gamma))*grid
+        try:
+            return (0.5 * (1.0 + self.gamma))*grid + analytical_deflection
+        except:
+            return (0.5 * (1.0 + self.gamma))*grid
     @property
     def is_MGE(self):
         return True
