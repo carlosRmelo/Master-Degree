@@ -20,9 +20,16 @@ Ele concorda com aquele valor apresentado em https://arxiv.org/pdf/1503.07605.pd
 
 
 
-
+Os dados do ALMA possuem em seu WCS um eixo a mais, que muitas vezes gera problemas. Então antes de reduzir seus dados, é necessaŕio corrigir esse WCS (basicamente recortar e manter apenas o WCS celestial).  Isso é feito em Correcting ALMA WCS.ipynb. Há na pasta ainda dois arquivos de teste, que ensinam a produzir a PSF do ALMA.
 
 Para o resampling da imagem foi utilizado o mpdaf, onde deixamos o centro parado e binnamos a imagem em 2px X 2px.
 Como a imagem original possuia um grid ímpar (841px X 841px = 4.205",4.205"), a imagem binnada é um pouco menor que a original
 (420px X 420px = 4.200",4.200"), mas uma vez que os arcos estão no centro isso não deve ser um problema.
-Além disso, criamos um arquivo com DS9 com os contronos da imagem binnada (resample_ctr.ctr). Isso permite que plotemos sobre a imagem original, verificando desta forma se as posições estão coincidindo.
+
+
+
+
+Também realizamos a rotação dos dados resampling (e da PSF) do ALMA. Essa rotação é feita pelo ãngulo de posição (PA) determinado pelo find_my_galaxy, durante o processo de redução dos dados do HST e parametrização  MGE. Também aproveitamos a oportunidade para centrzalizar a imagem rotacionada com a posição do centro da lente (também determinado pelo find_my_galaxy). A ideia é que o pixel central da imagem rotacionada do ALMA seja a posição do centro do lente. Isso é particularmente útil e necessário) para o modelo do Pyautolens. O mapa de ruído deve ser construído com esse mesmo tamanho, por isso é importante realizá-lo apenas após todo esse processo.
+A PSF deve também ser girada, uma vez que ela possuí uma orientação. Atenção a esse fato.
+
+O produto final está armazenado na pasta Final.

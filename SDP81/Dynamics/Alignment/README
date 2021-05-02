@@ -1,0 +1,20 @@
+We want to align the images from HST and MUSE, because we note a slight offset between it.
+Also, because Jampy assumes that the galaxy has its semi major axis along the x-axis, we rotate the aligned images by the PA angle to acomplish this requirement of Jampy.
+
+To align the HST image and Muse, first we cut and resample the HST image (hst_12194_01_wfc3_ir_f160w_drz.fits) to same the same resolution and field of view of Muse image (Muse.fits). This let us with a new image of HST (hst_cut.fits).
+After that, we use the astroalign package to align the images. Due the higher resolution, we use the HST as a reference. So, the final Muse aligned image is save as Muse_aligned.fits.
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+So, once we have the images already aligned we want to rotate them in such a way that the major semi-axis is on the x-axis. This is made by a rotation by the PA angle, finded by find_my_galaxy during the HST data reduction and MGE parametrization (See folder HST Data Reduction).
+In this step, we have the HST emission arcs, so we rotate it too.
+All the products are storage in Rotate folder.
+
+Some informations:
+
+PA: 		11.6 [deg]
+HST arcs:	arcs_wcs.fits
+
+We also plot the contours overlaid. But this is done in Plot contour folder.
+
+
