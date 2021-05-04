@@ -775,4 +775,3 @@ class Models(object):
 
     def __call__(self, pars):
         return self.log_probability(pars)
-

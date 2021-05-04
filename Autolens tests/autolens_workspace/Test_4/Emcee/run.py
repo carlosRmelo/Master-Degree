@@ -1,29 +1,35 @@
-"""
-Attention!
-This code runs in MPI mode.
-"""
+#!/usr/bin/env python
+# coding: utf-8
 
-""""
-    We want to fit SDP.81 data. For that, we are using the simplest model possible that includes dark matter and shear. We have 9 free parameters.
-    One ML, One beta, inclination, mbh, rho_s, r_s, mag_shear, phi_shear and gamma.
-"""
+# 
+# ## Attention!
+# ### This code runs in MPI mode.
+# 
+# 
+# Trying to recover the input values of the simulation. The free parameters are:
+#    - One ML, One beta, qinc, mbh, kappa_s, qDm, mag_shear, phi_shear and gamma.
+# 
+
+# In[1]:
+
 
 #Control time packages
 import time
 import os
 os.environ["OMP_NUM_THREADS"] = "1"
 
+#MPI
+from schwimmbad import MPIPool
 
 #General packages
 import numpy as np
 from My_Jampy import JAM
 import emcee
-
-#MPI
-from schwimmbad import MPIPool
+import matplotlib.pyplot as plt
 
 #Constants and usefull packages
 from astropy.cosmology import Planck15 as cosmo
+from astropy.cosmology import z_at_value
 from astropy.constants import G, M_sun, c
 import astropy.units as u
 
@@ -34,15 +40,11 @@ import autolens.plot as aplt
 #Combined Model package
 import CombinedModel
 
-#Useful constants
-metre2Mpc = (1*u.m).to(u.Mpc)/u.m           #Constant factor to convert metre to Mpc.
-kg2Msun = (1*u.kg/M_sun)*u.solMass/u.kg     #Constant factor to convert kg to Msun
+data_folder = "/home/carlos/Documents/GitHub/Master-Degree/Autolens tests/autolens_workspace/Test_4/Simulation_Data/"
 
-G_Mpc = G*(metre2Mpc)**3/kg2Msun            #Gravitational constant in Mpc³/(Msun s²)
-c_Mpc = c*metre2Mpc                         #Speed of light in Mpc/s
 
-#Dataset path
-data_folder = "/home/carlos/Documents/GitHub/Master-Degree/SDP81/Autolens/New_models/Data/"
+# In[ ]:
+
 
 #here we use the MPI
 with MPIPool() as pool:
@@ -50,86 +52,82 @@ with MPIPool() as pool:
     if not pool.is_master():
         pool.wait()
         sys.exit(0)
-
+   
         #Reading MGE inputs
-            #attention to units
-    surf_lum, sigma_lum, qobs_lum = np.loadtxt(data_folder+"JAM_Input.txt", unpack=True)       #MGE decomposition
-    surf_dm, sigma_dm , qobs_dm   = np.loadtxt(data_folder+"SDP81_pseudo-DM.txt", unpack=True) #DM component
-    norm_psf, sigma_psf           = np.loadtxt(data_folder+"MUSE_Psf_model.txt", unpack=True)  #PSF
-    ybin, xbin, vrms, erms        = np.loadtxt(data_folder+"pPXF_rot_data.txt", unpack=True)   #Vrms data
+    surf_lum, sigma_lum, qobs_lum = np.loadtxt("Input/JAM_Input.txt", unpack=True)      #MGE decomposition
+    surf_dm, sigma_dm , qobs_dm   = np.loadtxt("Input/eNFW.txt", unpack=True)           #DM component
+    norm_psf, sigma_psf           = np.loadtxt("Input/MUSE_Psf_model.txt", unpack=True) #PSF
+    x, y, vrms, erms              = np.loadtxt("Input/vrms_data.txt", unpack=True)      #vrms data
 
-    muse_pixsize = 0.2                                  #Muse pixel size [arcsec/px]
-
-    z_lens   = 0.299                                    #Lens redshifth
-    z_source = 3.042                                    #Source redshift
-
-    #Angular diameter distances
-    D_l = cosmo.angular_diameter_distance(z_lens)                   #Lens              
-    D_s = cosmo.angular_diameter_distance(z_source)                 #Source
-    D_ls = cosmo.angular_diameter_distance_z1z2(z_lens, z_source)   #Lens to source
-
+    pixsize = 0.2                                                           #MUSE pixel size
+    z_l     = 0.299                                                         #Lens Redshift
+    z_s     = 3.100                                                         #Source Redshift 
+    D_l     = cosmo.angular_diameter_distance(z_l).value                    #Distance to Lens [Mpc] 
+    
     ## Models inicialization
 
     """
         To inicialize the model, we set some random values for the parameters. But it's only necessary for initialize the model. During the non-linear search, this values will be updated constantly until the best fit.
     """  
+    mbh     = 1e9                                                           #mass of black hole [log10(M_sun)]
+    beta    = np.full_like(surf_lum, 0.35)                                  #anisotropy [ad]
+    inc     = 75                                                            #inclination [deg]
+    inc_rad = np.radians(inc)
+    qinc    = np.sqrt(np.min(qobs_lum)**2 - 
+                        (1 - np.min(qobs_lum)**2)/np.tan(inc_rad)**2)       #Deprojected axial ratio for inclination
+    qDM     = np.sqrt( qobs_dm[0]**2 - np.cos(inc_rad)**2)/np.sin(inc_rad)  #Deprojected DM axial ratio
+    kappa_s = 0.075                                                         #kappa_s of DM profile
+    r_s     = 11.5                                                          #Scale radius of DM [arcsec]
+    ml      = 5.00                                                          #mass to light ratio
+    shear_comp = al.convert.shear_elliptical_comps_from(magnitude=0.02, phi=88) #external shear
+    
+    #Autolens Data
+    imaging = al.Imaging.from_fits(
+            image_path=f"{data_folder}/arcs_simulation.fits",
+            noise_map_path=f"{data_folder}/noise_simulation.fits",
+            psf_path=f"{data_folder}/psf_simulation.fits",
+            pixel_scales=0.1,
+        )
 
+    mask = al.Mask.circular_annular(centre=(0.0, 0.), inner_radius=2.1, outer_radius=4.1,
+                                  pixel_scales=imaging.pixel_scales, shape_2d=imaging.shape_2d) #Create a mask
 
-    #This quantities are our unknown parameters
-    inc       = 75                              #Inclination [deg]
-    mbh       = 1e10                            #Mass of black hole [M_sun]
-    beta      = np.full_like(surf_lum, 0.3)     #Anisotropy
-    ml        = 10                              #Mass to light ratio [M_sun/L_sun]
-    mag_shear = 0.01                            #Shear magnitude
-    phi_shear = 100.0                           #Shear angle
-    rho_s     = 1e10                            #dark matter intensity
-    qdm       = np.full_like(qobs_dm, 0.5)      #dark matter axial ratio
-    gamma     = 1.0                             #Gamma
+    masked_image = al.MaskedImaging(imaging=imaging, mask=mask, inversion_uses_border=True)     #Masked image
     #--------------------------------------------------------------------------------------------------#
     # JAMPY MODEL
+    #Now we start our Jampy class
+    Jam_model = JAM(ybin=y*pixsize, xbin=x*pixsize, inc=inc, distance=D_l, mbh=mbh, beta=beta, rms=vrms, erms=erms,
+                       normpsf=norm_psf, sigmapsf=sigma_psf*pixsize, pixsize=pixsize)
 
-    Jam_model = JAM(ybin=ybin * muse_pixsize, xbin=xbin * muse_pixsize, inc=inc, distance=D_l.value,
-                     mbh=mbh, beta=beta, rms=vrms, erms=erms, normpsf=norm_psf, 
-                     sigmapsf=sigma_psf * muse_pixsize, pixsize=muse_pixsize)
-
-        #Add Luminosity component
+    #Add Luminosity component
     Jam_model.luminosity_component(surf_lum=surf_lum, sigma_lum=sigma_lum,
-                                    qobs_lum=qobs_lum, ml=ml)
-        #Add DM component
-    Jam_model.DM_component(surf_dm=rho_s * surf_dm, sigma_dm=sigma_dm, qobs_dm=qdm)
+                                        qobs_lum=qobs_lum, ml=ml)
+    #Add DM component
+    Jam_model.DM_component(surf_dm=kappa_s * surf_dm, sigma_dm=sigma_dm, qobs_dm=qobs_dm)
+    
     #--------------------------------------------------------------------------------------------------#
     # PYAUTOLENS MODEL
-
-    imaging = al.Imaging.from_fits(
-        image_path=f"{data_folder}/ALMA_resampled.fits",
-        noise_map_path=f"{data_folder}/ALMA_rms_noise_map.fits",
-        psf_path=f"{data_folder}/alma_psf.fits",
-        pixel_scales=0.01,
-        image_hdu=1, noise_map_hdu=1
-    )
-
-    mask_custom = al.Mask.from_fits(
-        file_path=f"{data_folder}mask2.fits", pixel_scales=imaging.pixel_scales
-    )
-
-    masked_imaging = al.MaskedImaging(imaging=imaging, mask=mask_custom)
-
+    #MGE mass profile
     mass_profile = al.mp.MGE()
+    ell_comps    = al.convert.elliptical_comps_from(axis_ratio=qobs_dm[0], phi=0.0) #Elliptical components in Pyautolens units
+    eNFW         = al.mp.dark_mass_profiles.EllipticalNFW(kappa_s=kappa_s, elliptical_comps=ell_comps ,scale_radius=r_s) #Analytical eNFW profile
 
-        #Components
-    mass_profile.MGE_comps(z_l=z_lens, z_s=z_source, 
-                       surf_lum=surf_lum, sigma_lum=sigma_lum, qobs_lum=qobs_lum, ml=ml,
-                       mbh=mbh, surf_dm =rho_s * surf_dm, sigma_dm=sigma_dm, qobs_dm=qdm)
+
+    #Components
+    #Do not include MGE DM component here
+    mass_profile.MGE_comps(z_l=z_l, z_s=z_s, 
+                           surf_lum=surf_lum, sigma_lum=sigma_lum, qobs_lum=qobs_lum, ml=ml, mbh=mbh) 
+    mass_profile.Analytic_Model(eNFW)  #Include Analytical NFW
     #--------------------------------------------------------------------------------------------------#
     # COMBINED MODEL
 
         #Just remembering, by default the model does not include dark matter.
     model = CombinedModel.Models(Jampy_model=Jam_model, mass_profile=mass_profile,
-                                 masked_imaging=masked_imaging, quiet=True)
+                                 masked_imaging=masked_image, quiet=True)
 
     model.mass_to_light(ml_kind='scalar')               #Setting gradient ML
     model.beta(beta_kind='scalar')                      #Seting vector anisotropy
-    model.has_DM(a=True,filename=data_folder+"SDP81_pseudo-DM.txt") #Setting Dark matter component
+    model.has_MGE_DM(a=True, filename="Input/eNFW.txt", include_MGE_DM="Dynamical") #Setting Dark matter component
     #--------------------------------------------------------------------------------------------------#
     #  EMCEE
     """
@@ -137,12 +135,12 @@ with MPIPool() as pool:
         They must follow the log_probability unpacking order.
     """
 
-    #In order: ML, beta, inc, log_mbh, log_rho_s, qDM, mag_shear, phi_shear, gamma
+    #In order: ML, beta, qinc, log_mbh, kappa_s, qDM, mag_shear, phi_shear, gamma
     nwalkers = 120                                                  #Number of walkers
     #We distribute the initial position of walkers using a uniform distribution over all the possible values.
-    pos = np.random.uniform(low=[0.5, -3, 50, 6, 6, 0.5, 0, 10, 0.8], high=[15, 3, 90, 10, 12, 1, 0.1, 150, 1.2], size=[nwalkers, 9])
+    pos = np.random.uniform(low=[0.5, -3, 0.1, 6, 0, 0.5, 0, 10, 0.8], high=[10, 3, 0.50, 10, 1, 1, 0.1, 150, 1.2], size=[nwalkers, 9])
     nwalkers, ndim = pos.shape                                      #Number of walkers/dimensions
-
+    
     """
         We save the results in a table.
         This table marks the number of iterations, the mean acceptance fraction,the running time, and the mean accep. fraction of last 100 its. 
@@ -152,13 +150,22 @@ with MPIPool() as pool:
     np.savetxt('Output_LogFile.txt', np.column_stack([0, 0, 0, 0]),
                                 fmt=b'	%i	 %e			 %e     %e', 
                                 header="Output table for the combined model: Dynamic.\n Iteration	 Mean acceptance fraction	 Processing Time    Last 100 Mean Accp.")
-
     #Print the number os cores/workers
     print("Workers nesse job:", pool.workers)
     print("Start")
+    """
+    This lines only check if the inputs are ok
+    ml_model     = np.array([ml])                      #mass to light ratio
+    beta_model   = np.array([beta[0]])  #anisotropy [ad]
+    p0           = np.append(ml_model, beta_model)
+    others = np.array([qinc, np.log10(mbh), kappa_s, qDM, 0.02, 88, 1.0])#Other parameters
+    p0     = np.append(p0, others)                        #All parameters
+    
+    model(p0)
+    """
 
     #Backup
-    filename = "SDP_simple_model.h5"
+    filename = "Simulation4.h5"
     backend = emcee.backends.HDFBackend(filename)
     backend.reset(nwalkers, ndim)
     moves=[(emcee.moves.DEMove(), 0.80), (emcee.moves.DEMove(gamma0=1.0), 0.20)]
@@ -168,7 +175,7 @@ with MPIPool() as pool:
                                      backend=backend, moves=moves)
     
     #Burn in fase
-    burnin = 1                           #Number os burn in steps
+    burnin = 1                           #Number of burn in steps
     print("Burn in with %i steps"%burnin)
     start = time.time()
     state = sampler.run_mcmc(pos, nsteps=burnin, progress=True)
@@ -177,7 +184,7 @@ with MPIPool() as pool:
     sampler.reset()
     print("\n")
     print("End of burn-in fase")
-
+    
     print("\n")
     print("Testing velocity of 1 step with %i walkers."%nwalkers)
     start = time.time()
@@ -187,7 +194,7 @@ with MPIPool() as pool:
     sampler.reset()
     print("\n")
     #End of burn in fase
-
+    
     nsteps = 1                          #Number of walkes 
 
     # We'll track how the average autocorrelation time estimate changes
@@ -201,7 +208,6 @@ with MPIPool() as pool:
     # Now we'll sample for up to max_n steps
     start = time.time()
     global_time = time.time()
-
     
     for sample in sampler.sample(state, iterations=nsteps, progress=True):
         # Only check convergence every 100 steps
@@ -250,3 +256,4 @@ with MPIPool() as pool:
     print("Final")
     multi_time = end - start
     print("Multiprocessing took {0:.1f} seconds".format(multi_time))
+
