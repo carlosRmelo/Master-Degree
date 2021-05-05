@@ -1,12 +1,14 @@
 Inclination [deg]    		: 75.0
+qInc				: 0.5024
 MBH [solar mass]     		: 1e9
 Anisotropy           		: 0.35
 Shear magnitude      		: 0.02
 Shear angle [degree] 		: 88
 Mass-to-light [M_sun/L_sun]	: 5.00
 kappa_s			: 0.075
-r_s [arcsec]				: 11.5 
+r_s [arcsec]			: 11.5 
 qDM				: 0.85
+q_deproj			: 0.8382
 Gamma				: 1.0
 z_l				: 0.299
 z_s				: 3.100
