@@ -555,7 +555,7 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
         #Updating the grid with the angle value after deflection
         grid[:, 0] = ((const_factor*grid_result[:, 0])*u.rad).to(u.arcsec).value
         grid[:, 1] = ((const_factor*grid_result[:, 1])*u.rad).to(u.arcsec).value
-        print(self.gamma)
+        
         try:
             return (0.5 * (1.0 + self.gamma))*(grid + analytical_deflection)
         except:
