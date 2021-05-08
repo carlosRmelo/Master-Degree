@@ -128,11 +128,11 @@ with MPIPool() as pool:
     #Print the number os cores/workers
     print("Workers nesse job:", pool.workers)
     print("Start")
-    
+    """
     #This lines only check if the inputs are ok
-    #p0     = np.array(([7.0, 0.075, qobs_dm[0], 9.0, 0.02, 88, 1.0]))            #All parameters
-    #emcee_model(p0)
-    
+    p0     = np.array(([7.0, 0.075, qobs_dm[0], 9.0, 0.02, 88, 1.0]))            #All parameters
+    emcee_model(p0)
+    """
 
     #Backup
     filename = "Lens_Simulation.h5"
@@ -145,7 +145,7 @@ with MPIPool() as pool:
                                      backend=backend, moves=moves)
     
     #Burn in fase
-    burnin = 500                           #Number of burn in steps
+    burnin = 1                           #Number of burn in steps
     print("Burn in with %i steps"%burnin)
     start = time.time()
     state = sampler.run_mcmc(pos, nsteps=burnin, progress=True)
@@ -156,12 +156,12 @@ with MPIPool() as pool:
     print("End of burn-in fase")
     
     print("\n")
-    #print("Testing velocity of 1 step with %i walkers."%nwalkers)
-    #start = time.time()
-    #state = sampler.run_mcmc(pos, nsteps=burnin, progress=True)
-    #print("\n")
-    #print("Test elapsed time:", time.time() - start)
-    #sampler.reset()
+    print("Testing velocity of 1 step with %i walkers."%nwalkers)
+    start = time.time()
+    state = sampler.run_mcmc(pos, nsteps=burnin, progress=True)
+    print("\n")
+    print("Test elapsed time:", time.time() - start)
+    sampler.reset()
     print("\n")
     #End of burn in fase
     

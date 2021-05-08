@@ -18,11 +18,11 @@ import time
 #Some packages#
 
 from astropy.cosmology import Planck15
-from astropy.constants import G, M_sun, c
+from astropy import constants
 import astropy.units as u
+import math
 import scipy.integrate as integrate
-
-
+from autogalaxy.util import cosmology_util
 
 from multiprocessing import Pool
 import multiprocessing
@@ -32,11 +32,9 @@ from numba import njit, double, jit
 
 #Some useful constants#
 
-metre2Mpc = (1*u.m).to(u.Mpc)/u.m           #Constant factor to convert metre to Mpc.
-kg2Msun = (1*u.kg/M_sun)*u.solMass/u.kg     #Constant factor to convert kg to Msun
-
-G_Mpc = G*(metre2Mpc)**3/kg2Msun            #Gravitational constant in Mpc³/(Msun s²)
-c_Mpc = c*metre2Mpc                         #Speed of light in Mpc/s
+G_Mpc = constants.G.to("Mpc3 / (solMass * s2)")     #Gravitational constant in Mpc³/(Msun s²)
+c_Mpc = constants.c.to("Mpc / s")                   #Speed of light in Mpc/s
+                      
 
 #Deflection angle of MGE model.#
 """
@@ -260,6 +258,14 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
         
         self.z_l = z_l
         self.z_s = z_s
+        critical_density_kpc = cosmology_util.critical_surface_density_between_redshifts_from(
+                                                        redshift_0=z_l,   
+                                                        redshift_1=z_s,
+                                                        cosmology=cosmo.Planck15, 
+                                                        unit_mass="solMass", 
+                                                        unit_length="kpc") #Critical Surface Density in [Msun/kpc2]
+        
+        self.critical_density = critical_density_kpc * (1e3)**2  #Critical Surface Density in [Msun/Mpc2]
 
 
         assert surf_lum.size == sigma_lum.size == qobs_lum.size, "The luminous MGE components do not match"
@@ -547,18 +553,17 @@ class MGE(geometry_profiles.SphericalProfile, mp.MassProfile):
             return print("Invalid integration method")
 
         #Constant Factor from integral in deflection angles
-        critical_density = (c_Mpc**2/(4*np.pi*G_Mpc)) * (self.D_l/(self.D_ls * self.D_s))
-        const_factor = 1/(np.pi * critical_density * self.D_l**2)
+        const_factor = 1/(np.pi * self.critical_density * self.D_l**2)
 
         const_factor = const_factor.value
 
         #Updating the grid with the angle value after deflection
         grid[:, 0] = ((const_factor*grid_result[:, 0])*u.rad).to(u.arcsec).value
         grid[:, 1] = ((const_factor*grid_result[:, 1])*u.rad).to(u.arcsec).value
-        
-        try:
+
+        if self.analytic_profile is not None:
             return (0.5 * (1.0 + self.gamma))*(grid + analytical_deflection)
-        except:
+        else:
             return (0.5 * (1.0 + self.gamma))*grid
     @property
     def is_MGE(self):

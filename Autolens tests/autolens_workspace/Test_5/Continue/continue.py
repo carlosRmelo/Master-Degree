@@ -41,8 +41,6 @@ import My_Autolens
 
 data_folder = "/home/carlos/Documents/GitHub/Master-Degree/Autolens tests/autolens_workspace/Test_5/Simulation_Data/"
 
-# In[ ]:
-
 
 #here we use the MPI
 with MPIPool() as pool:
@@ -50,8 +48,8 @@ with MPIPool() as pool:
     if not pool.is_master():
         pool.wait()
         sys.exit(0)
-   
-        #Reading MGE inputs
+
+            #Reading MGE inputs
     surf_lum, sigma_lum, qobs_lum = np.loadtxt("Input/JAM_Input.txt", unpack=True)      #MGE decomposition
     surf_dm, sigma_dm , qobs_dm   = np.loadtxt("Input/eNFW.txt", unpack=True)            #DM component
 
@@ -69,8 +67,8 @@ with MPIPool() as pool:
     ml     = 7.00                                                          #mass to light ratio
     r_s    = 11.5                                                          #scale radius [arcsec]
     shear_comp = al.convert.shear_elliptical_comps_from(magnitude=0.02, phi=88) #external shear
-    
-    
+
+
     #Autolens Data
     imaging = al.Imaging.from_fits(
             image_path=f"{data_folder}/arcs_simulation.fits",
@@ -83,7 +81,7 @@ with MPIPool() as pool:
                                     pixel_scales=imaging.pixel_scales)
 
     masked_image = al.MaskedImaging(imaging=imaging, mask=mask, inversion_uses_border=True)   #Masked image
-    
+
     #--------------------------------------------------------------------------------------------------#
     # PYAUTOLENS MODEL
     #MGE mass profile
@@ -96,76 +94,29 @@ with MPIPool() as pool:
     #Components
     #Do not include MGE DM component here
     mass_profile.MGE_comps(z_l=z_l, z_s=z_s, 
-                           surf_lum=surf_lum, sigma_lum=sigma_lum, qobs_lum=qobs_lum, ml=ml, mbh=mbh) 
+                        surf_lum=surf_lum, sigma_lum=sigma_lum, qobs_lum=qobs_lum, ml=ml, mbh=mbh) 
     mass_profile.Analytic_Model(eNFW)  #Include Analytical NFW
 
     #--------------------------------------------------------------------------------------------------#
     #Emcee Model
     emcee_model = My_Autolens.Models(mass_profile=mass_profile, masked_imaging=masked_image, quiet=True)
     emcee_model.include_DM_analytical(eNFW)
-    
-    #  EMCEE
-    """
-        Pay close attention to the order in which the components are added. 
-        They must follow the log_probability unpacking order.
-    """
 
-    #In order: ml, kappa_s, qDM, log_mbh, mag_shear, phi_shear, gamma 
-    nwalkers = 120                                                  #Number of walkers
-    #We distribute the initial position of walkers using a uniform distribution over all the possible values.
-    pos = np.random.uniform(low=[1, 0, 0.3, 7, 0, 0, 0.9], high=[10, 1, 1, 10, 0.1, 179, 1.1], size=[nwalkers, 7])
-    nwalkers, ndim = pos.shape                                      #Number of walkers/dimensions
-    
-    """
-        We save the results in a table.
-        This table marks the number of iterations, the mean acceptance fraction,the running time, and the mean accep. fraction of last 100 its. 
-        
-    """
-
-    np.savetxt('Output_LogFile.txt', np.column_stack([0, 0, 0, 0]),
-                                fmt=b'	%i	 %e			 %e     %e', 
-                                header="Output table for the combined model: Dynamic.\n Iteration	 Mean acceptance fraction	 Processing Time    Last 100 Mean Accp.")
-    #Print the number os cores/workers
-    print("Workers nesse job:", pool.workers)
-    print("Start")
-    
-    #This lines only check if the inputs are ok
-    #p0     = np.array(([7.0, 0.075, qobs_dm[0], 9.0, 0.02, 88, 1.0]))            #All parameters
-    #emcee_model(p0)
-    
-
-    #Backup
-    filename = "Lens_Simulation.h5"
+    filename = "Input/Lens_Simulation.h5"
+    read = emcee.backends.HDFBackend(filename)
     backend = emcee.backends.HDFBackend(filename)
-    backend.reset(nwalkers, ndim)
-    moves=[(emcee.moves.DEMove(), 0.80), (emcee.moves.DEMove(gamma0=1.0), 0.20)]
+    nwalkers, ndim = read.shape 
 
-    #Initialize the sampler
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, emcee_model, pool=pool,
-                                     backend=backend, moves=moves)
-    
-    #Burn in fase
-    burnin = 500                           #Number of burn in steps
-    print("Burn in with %i steps"%burnin)
-    start = time.time()
-    state = sampler.run_mcmc(pos, nsteps=burnin, progress=True)
-    print("\n")
-    print("Burn in elapsed time:", time.time() - start)
-    sampler.reset()
-    print("\n")
-    print("End of burn-in fase")
-    
-    print("\n")
-    #print("Testing velocity of 1 step with %i walkers."%nwalkers)
-    #start = time.time()
-    #state = sampler.run_mcmc(pos, nsteps=burnin, progress=True)
-    #print("\n")
-    #print("Test elapsed time:", time.time() - start)
-    #sampler.reset()
-    print("\n")
-    #End of burn in fase
-    
-    nsteps = 50000                          #Number of walkes 
+    moves=[(emcee.moves.DEMove(gamma0=0.063), 0.90), (emcee.moves.DEMove(), 0.10)]
+        #Initialize the new sampler
+    new_sampler = emcee.EnsembleSampler(nwalkers, ndim, emcee_model, pool=pool,
+                                            backend=backend, moves=moves)
+    state = new_sampler.get_last_sample()
+
+    new_sampler.reset()
+    backend.reset(nwalkers=nwalkers, ndim=ndim)
+
+    nsteps = 500000                          #Number of walkes 
 
     # We'll track how the average autocorrelation time estimate changes
     index = 0
@@ -175,28 +126,30 @@ with MPIPool() as pool:
     # This saves how many walkers have been accepted in the last 100 steps
     old_accp = np.zeros(nwalkers,)
 
+
     # Now we'll sample for up to max_n steps
     start = time.time()
     global_time = time.time()
-    
-    for sample in sampler.sample(state, iterations=nsteps, progress=True):
+
+
+    for sample in new_sampler.sample(state, iterations=nsteps, progress=True):
         # Only check convergence every 100 steps
-        if sampler.iteration % 100:
+        if new_sampler.iteration % 10:
             continue
         print("\n")
         print("##########################")
 
         #Compute how many walkes have been accepted during the last 100 steps
 
-        new_accp = sampler.backend.accepted             #Total number of accepted
+        new_accp = new_sampler.backend.accepted             #Total number of accepted
         old_accp = new_accp - old_accp                  #Number of accepted in the last 100 steps
         mean_accp_100 = np.mean(old_accp/float(100))    #Mean accp fraction of last 100 steps
 
         #Update a table output with acceptance
         table = np.loadtxt("Output_LogFile.txt")
 
-        iteration = sampler.iteration
-        accept = np.mean(sampler.acceptance_fraction)
+        iteration = new_sampler.iteration
+        accept = np.mean(new_sampler.acceptance_fraction)
         total_time = time.time() - global_time
         upt = np.column_stack([iteration, accept, total_time, mean_accp_100])
 
@@ -207,12 +160,12 @@ with MPIPool() as pool:
         # Compute the autocorrelation time so far
         # Using tol=0 means that we'll always get an estimate even
         # if it isn't trustworthy
-        tau = sampler.get_autocorr_time(tol=0)
+        tau = new_sampler.get_autocorr_time(tol=0)
         autocorr[index] = np.mean(tau)
         index += 1
 
         # Check convergence
-        converged = np.all(tau * 100 < sampler.iteration)
+        converged = np.all(tau * 100 < new_sampler.iteration)
         converged &= np.all(np.abs(old_tau - tau) / tau < 0.01)
         if converged:
             if 0.2 < accept < 0.35:
@@ -226,5 +179,3 @@ with MPIPool() as pool:
     print("Final")
     multi_time = end - start
     print("Multiprocessing took {0:.1f} seconds".format(multi_time))
-
-
