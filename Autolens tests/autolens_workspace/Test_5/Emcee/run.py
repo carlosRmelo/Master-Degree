@@ -101,7 +101,7 @@ with MPIPool() as pool:
 
     #--------------------------------------------------------------------------------------------------#
     #Emcee Model
-    emcee_model = My_Autolens.Models(mass_profile=mass_profile, masked_imaging=masked_image, quiet=True)
+    emcee_model = My_Autolens.Models(mass_profile=mass_profile, masked_imaging=masked_image, quiet=False)
     emcee_model.include_DM_analytical(eNFW)
     
     #  EMCEE
@@ -113,7 +113,7 @@ with MPIPool() as pool:
     #In order: ml, kappa_s, qDM, log_mbh, mag_shear, phi_shear, gamma 
     nwalkers = 120                                                  #Number of walkers
     #We distribute the initial position of walkers using a uniform distribution over all the possible values.
-    pos = np.random.uniform(low=[1, 0, 0.3, 7, 0, 0, 0.9], high=[10, 1, 1, 10, 0.1, 179, 1.1], size=[nwalkers, 7])
+    pos = np.random.uniform(low=[5, 0, 0.5, 7, 0, 0, 0.9], high=[10, 0.1, 1, 10, 0.1, 10, 1.1], size=[nwalkers, 7])
     nwalkers, ndim = pos.shape                                      #Number of walkers/dimensions
     
     """

@@ -107,10 +107,10 @@ with MPIPool() as pool:
     backend = emcee.backends.HDFBackend(filename)
     nwalkers, ndim = read.shape 
 
-    moves=[(emcee.moves.DEMove(gamma0=0.063), 0.90), (emcee.moves.DEMove(), 0.10)]
+    
         #Initialize the new sampler
     new_sampler = emcee.EnsembleSampler(nwalkers, ndim, emcee_model, pool=pool,
-                                            backend=backend, moves=moves)
+                                            backend=backend)
     state = new_sampler.get_last_sample()
 
     new_sampler.reset()
@@ -134,7 +134,7 @@ with MPIPool() as pool:
 
     for sample in new_sampler.sample(state, iterations=nsteps, progress=True):
         # Only check convergence every 100 steps
-        if new_sampler.iteration % 10:
+        if new_sampler.iteration % 1:
             continue
         print("\n")
         print("##########################")

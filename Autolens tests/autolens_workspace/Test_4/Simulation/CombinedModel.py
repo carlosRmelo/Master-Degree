@@ -12,7 +12,8 @@
 import numpy as np
 import autolens as al
 import autolens.plot as aplt
-
+from autoarray.fit import fit
+import copy
 
 
 
@@ -92,7 +93,7 @@ class Models(object):
 
         self.boundary = {'qinc': [0.0, 1], 'beta': [-3, 3], 'ml': [0.5, 15],  
                  'ml0': [0.5, 15], 'delta': [0.1, 2], 'lower': [0, 1],
-                 'kappa_s': [0, 2], 'qDM': [0.1, 1], 'log_mbh':[7, 11],
+                 'kappa_s': [0, 1], 'qDM': [0.1, 1], 'log_mbh':[7, 11],
                  'mag_shear': [0, 0.1], 'phi_shear': [0, 179], 'gamma': [0.80, 1.20]}
 
     def priors(self): 
@@ -212,6 +213,8 @@ class Models(object):
                     return -np.inf
         return 0.0
 
+    #This function is no longer necessary, because we are sampling qinc, not qproj
+    #I will keep it here only as a souvenir and in case it is useful in the future.
     def check_Deprojected_axial(self, parsDic):
         """
             Check deprojected axial ratio. If the inclination is too low for decomposition, then rejected it.
@@ -222,6 +225,7 @@ class Models(object):
             ----------
                 -np.inf or 0.0
         """
+        print(f"check_Deprojected_axial is deprecated!!!")
         inc = np.radians(parsDic['inc'])
         qobs_star_dat = self.mass_profile.qobs_lum
         #Stellar
@@ -326,7 +330,7 @@ class Models(object):
             1. The intensity (kappa_s)
             2. The projected axial ratio qDM (assuming the semi-major axis along the x-axis).
         
-        The MGE dark matter component could be add in the dynamical model only, in the lens model only, or either. For a more robust analysis, we recommend a self consist model, using the DM MGE component in both model at same time. But, unfortunally, this choise is a little bit slower due the form of the integral in the lens deflection calculation.
+        The MGE dark matter component could be add in the dynamical model only, in the lens model only, or either. For a more robust analysis, we recommend a self consist model, using the DM MGE component in both model at same time. But, unfortunally, this choice is a little bit slower due the form of the integral in the lens deflection calculation.
         Input:
         -----------------
         a: Bool
@@ -393,9 +397,9 @@ class Models(object):
             kind: Select the type of ML ratio. Three possibilities are available.
                     scalar  : Constante ML. Only one free parameter
 
-                    gradient: One ML per gaussian following a gradient profile, i.e, ML[i+1] >= ML[i], where i=0 represents the most internal gaussian. This implies a number of free parameters equal to number of gaussians in surface luminosity density. Take care with it!
+                    gradient: One ML per gaussian following a gradient profile, i.e, ML[i] >= ML[i+1], where i=0 represents the most internal gaussian. This implies a number of free parameters equal to number of gaussians in surface luminosity density. Take care with it!
 
-                    gaussian: A gaussian ML. Here there are three free parameters: central ML0, sigma   of the gaussian and a lower value for the mass to light ratio. This allows a ML per MGE component, following a gaussian shape, without increasing (too much) the number of free parameters.
+                    gaussian: A gaussian ML. Here there are three free parameters: central ML0, sigma of the gaussian and a lower value for the mass to light ratio. This allows a ML per MGE component, following a gaussian shape, without increasing (too much) the number of free parameters.
         """
         if ml_kind == 'scalar' or ml_kind == 'gradient' or ml_kind == 'gaussian':
             self.ml_kind = ml_kind
@@ -496,6 +500,11 @@ class Models(object):
             eNFW = al.mp.dark_mass_profiles.EllipticalNFW(kappa_s=parsDic['kappa_s'],elliptical_comps=ell_comps, scale_radius=r_s) #Set the analytical model
 
             self.mass_profile.Analytic_Model(eNFW) # include analytical model
+            if self.quiet is False:
+                print("Including the following Analytical DM profile:")
+                print("#------------------------------------#")
+                print(eNFW)
+                print("\n")
         except:
             pass
             
@@ -577,30 +586,38 @@ class Models(object):
             mass=self.mass_profile,
             shear=al.mp.ExternalShear(elliptical_comps=shear_comp),
         )
-        
-        
-        tracer = al.Tracer.from_galaxies(galaxies=[lens_galaxy, al.Galaxy(redshift=self.mass_profile.z_s)])
 
-        source_plane_grid = tracer.traced_grids_of_planes_from_grid(grid=self.masked_imaging.grid)[1]
+        source_galaxy = al.Galaxy(
+            redshift=self.mass_profile.z_s,
+            pixelization=al.pix.Rectangular(shape=(40, 40)),
+            regularization=al.reg.Constant(coefficient=1.0),
+)
+        tracer = al.Tracer.from_galaxies(galaxies=[lens_galaxy, source_galaxy])
         
-        #Check if the model has converged. If not, return -inf
+        #Check if the model has converged. If not, raise an error and return -inf
         try:
-            rectangular = al.pix.Rectangular(shape=(40, 40))
-            mapper = rectangular.mapper_from_grid_and_sparse_grid(grid=source_plane_grid)
-        
-            inversion = al.Inversion(
-                masked_dataset=self.masked_imaging,
-                mapper=mapper,
-                regularization=al.reg.Constant(coefficient=3.5),
-        )
-            chi2T = inversion.chi_squared_map.sum()
+            fit = al.FitImaging(masked_imaging=self.masked_imaging, tracer=tracer)
+
+            log_likelihood = fit.log_likelihood_with_regularization
+
             
             if self.quiet is False:
-                aplt.Inversion.subplot_inversion(inversion, 
-                                                    include=aplt.Include(inversion_border=False,
-                                                    inversion_pixelization_grid=False))
-            return -0.5 * chi2T
+                print("Lens Galaxy Configuration:")
+                print("Log Likelihood_with_regularization:", log_likelihood)
+                print("Log Normalization", fit.noise_normalization)
+                print("Log Evidence:", fit.log_evidence)
+                print("#------------------------------------#")
+                print(lens_galaxy)
+                print("\n")
+                
+
+                aplt.FitImaging.subplot_fit_imaging(fit=fit, include=aplt.Include(mask=True))
+                aplt.Inversion.reconstruction(fit.inversion)              
+                
+
+            return log_likelihood
         except:
+            print("An exception ocurres in Pyautolens_log_likelihood().")
             return -np.inf
 
     def Dic(self, pars):
@@ -752,7 +769,7 @@ class Models(object):
 
     def log_probability(self,pars):
         """
-        Log-probability function for whole model WITH dark matter.
+        Log-probability function for whole model.
         Input:
         ----------
             pars: current values in the Emcee sample.
@@ -767,9 +784,8 @@ class Models(object):
         #Checking boundaries
         if not np.isfinite(self.check_boundary(parsDic)):
             return -np.inf
-        #calculating the log_priors
+        #Calculating the log_priors
         lp = self.log_prior(parsDic)
-        print(self.boundary['qinc'], parsDic['qinc'])
 
         return lp + self.JAM_log_likelihood(parsDic) + self.Pyautolens_log_likelihood(parsDic)
 

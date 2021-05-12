@@ -1,7 +1,3 @@
-We simulate a Vrms map using for that:
-
-- A elliptical NFW profile
-- Stellar Component
 
 With this same mass components, we simulate a lens galaxy:
 - MGE elliptical mass profile
@@ -11,6 +7,5 @@ With this same mass components, we simulate a lens galaxy:
 We simulate a source galaxy, using a Sersic profile and then, using the lens galaxy we obtein the gravitational arcs.
 
 
-All this simulation data will be used as imput for the Emcee, where we try to recory it.
-An import note: For the Emcee, we will use an pseudo Elliptical NFW model, not the MGE decomposition.
-This could give us a tip.
+All this simulation data will be used as imput for the Emcee, where we try to recovery it.
+

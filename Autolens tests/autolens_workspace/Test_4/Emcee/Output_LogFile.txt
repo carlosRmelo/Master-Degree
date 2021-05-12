@@ -1,3 +1,0 @@
-# Output table for the combined model: Dynamic.
-#  Iteration	 Mean acceptance fraction	 Processing Time    Last 100 Mean Accp.
-	0	 0.000000e+00			 0.000000e+00     0.000000e+00
