@@ -59,75 +59,88 @@ with MPIPool() as pool:
     norm_psf, sigma_psf           = np.loadtxt("Input/MUSE_Psf_model.txt", unpack=True) #PSF
     x, y, vrms, erms              = np.loadtxt("Input/vrms_data.txt", unpack=True)      #vrms data
 
-    pixsize = 0.2                                                           #MUSE pixel size
-    z_l     = 0.299                                                         #Lens Redshift
-    z_s     = 3.100                                                         #Source Redshift 
-    D_l     = cosmo.angular_diameter_distance(z_l).value                    #Distance to Lens [Mpc] 
-    
-    ## Models inicialization
+    #Only for lensing modelling 
+    z_l    = 0.299                                                         #Lens Redshift
+    z_s    = 4.100                                                         #Source Redshift 
+    D_l    = cosmo.angular_diameter_distance(z_l).value                    #Distance to lens [Mpc] 
+    mbh    = 1e9                                                           #mass of black hole [log10(M_sun)]
+    kappa_ = 0.075                                                         #kappa_s of DM profile
+    r_s    = 11.5
+    ml     = 7.00                                                          #mass to light ratio
+    phi_shear = 88                                                         #Inclination of external shear [deg]
+    mag_shear = 0.02                                                       #magnitude of shear
+    shear_comp = al.convert.shear_elliptical_comps_from(magnitude=mag_shear, phi=phi_shear) #external shear
 
-    """
-        To inicialize the model, we set some random values for the parameters. But it's only necessary for initialize the model. During the non-linear search, this values will be updated constantly until the best fit.
-    """  
-    mbh     = 1e9                                                           #mass of black hole [log10(M_sun)]
-    beta    = np.full_like(surf_lum, 0.35)                                  #anisotropy [ad]
-    inc     = 75                                                            #inclination [deg]
+    beta    = np.full_like(surf_lum, -0.15)                                 #anisotropy [ad]
+    inc     = 65                                                            #inclination [deg]
     inc_rad = np.radians(inc)
     qinc    = np.sqrt(np.min(qobs_lum)**2 - 
                         (1 - np.min(qobs_lum)**2)/np.tan(inc_rad)**2)       #Deprojected axial ratio for inclination
     qDM     = np.sqrt( qobs_dm[0]**2 - np.cos(inc_rad)**2)/np.sin(inc_rad)  #Deprojected DM axial ratio
-    kappa_s = 0.075                                                         #kappa_s of DM profile
-    r_s     = 11.5                                                          #Scale radius of DM [arcsec]
-    ml      = 5.00                                                          #mass to light ratio
-    shear_comp = al.convert.shear_elliptical_comps_from(magnitude=0.02, phi=88) #external shear
+    pixsize = 0.2                                                           #MUSE pixel size
     
     #Autolens Data
     imaging = al.Imaging.from_fits(
-            image_path=f"{data_folder}/arcs_simulation.fits",
-            noise_map_path=f"{data_folder}/noise_simulation.fits",
-            psf_path=f"{data_folder}/psf_simulation.fits",
-            pixel_scales=0.1,
-        )
+        image_path=f"{data_folder}/arcs_simulation.fits",
+        noise_map_path=f"{data_folder}/noise_simulation.fits",
+        psf_path=f"{data_folder}/psf_simulation.fits",
+        pixel_scales=0.1,
+    )
 
-    mask = al.Mask.circular_annular(centre=(0.0, 0.), inner_radius=2.1, outer_radius=4.1,
-                                  pixel_scales=imaging.pixel_scales, shape_2d=imaging.shape_2d) #Create a mask
+    mask        = al.Mask.from_fits( file_path=f"{data_folder}/new_mask.fits", hdu=1, 
+                                        pixel_scales=imaging.pixel_scales)#You should check Mask_Maker folder before continue
 
     masked_image = al.MaskedImaging(imaging=imaging, mask=mask, inversion_uses_border=True)     #Masked image
+
+
+    #aplt.Imaging.subplot_imaging(
+    #    imaging=imaging, mask=mask, include=aplt.Include(border=True),                         #Plot
+    #)
     #--------------------------------------------------------------------------------------------------#
     # JAMPY MODEL
     #Now we start our Jampy class
     Jam_model = JAM(ybin=y*pixsize, xbin=x*pixsize, inc=inc, distance=D_l, mbh=mbh, beta=beta, rms=vrms, erms=erms,
-                       normpsf=norm_psf, sigmapsf=sigma_psf*pixsize, pixsize=pixsize)
+                   normpsf=norm_psf, sigmapsf=sigma_psf*pixsize, pixsize=pixsize)
 
     #Add Luminosity component
     Jam_model.luminosity_component(surf_lum=surf_lum, sigma_lum=sigma_lum,
                                         qobs_lum=qobs_lum, ml=ml)
+
     #Add DM component
-    Jam_model.DM_component(surf_dm=kappa_s * surf_dm, sigma_dm=sigma_dm, qobs_dm=qobs_dm)
-    
+    Jam_model.DM_component(surf_dm=kappa_ * surf_dm, sigma_dm=sigma_dm, qobs_dm=qobs_dm)
     #--------------------------------------------------------------------------------------------------#
     # PYAUTOLENS MODEL
-    #MGE mass profile
-    mass_profile = al.mp.MGE()
-    ell_comps    = al.convert.elliptical_comps_from(axis_ratio=qobs_dm[0], phi=0.0) #Elliptical components in Pyautolens units
-    eNFW         = al.mp.dark_mass_profiles.EllipticalNFW(kappa_s=kappa_s, elliptical_comps=ell_comps ,scale_radius=r_s) #Analytical eNFW profile
+    
+    ell_comps = al.convert.elliptical_comps_from(axis_ratio=qobs_dm[0], phi=0.0) #Elliptical components in Pyautolens units
+    eNFW      = al.mp.dark_mass_profiles.EllipticalNFW(kappa_s=kappa_, elliptical_comps=ell_comps, scale_radius=r_s) #elliptical NFW
 
+    mass_profile = al.mp.MGE()                            #MGE mass model
+    mass_profile.Analytic_Model(analytic_profile=eNFW)   #Include the analytical pENFW
 
     #Components
-    #Do not include MGE DM component here
     mass_profile.MGE_comps(z_l=z_l, z_s=z_s, 
-                           surf_lum=surf_lum, sigma_lum=sigma_lum, qobs_lum=qobs_lum, ml=ml, mbh=mbh) 
-    mass_profile.Analytic_Model(eNFW)  #Include Analytical NFW
+                        surf_lum=surf_lum, sigma_lum=sigma_lum, qobs_lum=qobs_lum, ml=ml,
+                        mbh=mbh) #DON'T INCLUDE THE MGE PARAMETRIZATION OF DM
+
+ 
+    #Lens galaxy
+    lens_galaxy = al.Galaxy(
+        redshift=z_l,
+        mass=mass_profile,
+        shear=al.mp.ExternalShear(elliptical_comps=shear_comp)
+    )
     #--------------------------------------------------------------------------------------------------#
     # COMBINED MODEL
+    #Starting Model
+    model_emcee = CombinedModel.Models(Jampy_model=Jam_model, mass_profile=mass_profile,
+                                    masked_imaging=masked_image, quiet=True)
 
-        #Just remembering, by default the model does not include dark matter.
-    model = CombinedModel.Models(Jampy_model=Jam_model, mass_profile=mass_profile,
-                                 masked_imaging=masked_image, quiet=True)
+    #Setup Configurations
 
-    model.mass_to_light(ml_kind='scalar')               #Setting gradient ML
-    model.beta(beta_kind='scalar')                      #Seting vector anisotropy
-    model.has_MGE_DM(a=True, filename="Input/eNFW.txt", include_MGE_DM="Dynamical") #Setting Dark matter component
+    model_emcee.mass_to_light(ml_kind='scalar')                                          #Setting scalar ML
+    model_emcee.beta(beta_kind='scalar')                                                 #Seting vector anisotropy
+    model_emcee.has_MGE_DM(a=True, filename="Input/eNFW.txt", include_MGE_DM="Dynamical")#Setting Dark matter component
+    model_emcee.include_DM_analytical(analytical_DM=eNFW)    
     #--------------------------------------------------------------------------------------------------#
     #  EMCEE
     """
@@ -135,11 +148,12 @@ with MPIPool() as pool:
         They must follow the log_probability unpacking order.
     """
 
-    #In order: ML, beta, qinc, log_mbh, kappa_s, qDM, mag_shear, phi_shear, gamma
+    #In order: ML, beta, qinc, log_mbh, kappa_s, qDM, mag_shear, phi_shear, gamma 
+    p0 = np.array([ml, beta[0], qinc, np.log10(mbh), kappa_, qDM, mag_shear, phi_shear, 1.00]) #Best fit
     nwalkers = 120                                                  #Number of walkers
-    #We distribute the initial position of walkers using a uniform distribution over all the possible values.
-    pos = np.random.uniform(low=[0.5, -3, 0.1, 6, 0, 0.5, 0, 10, 0.8], high=[10, 3, 0.50, 10, 1, 1, 0.1, 150, 1.2], size=[nwalkers, 9])
-    nwalkers, ndim = pos.shape                                      #Number of walkers/dimensions
+    sigma    = np.ones_like(p0) * 0.2                               #Assuming a 0.2 sigma around the best fit
+    initial  = np.random.normal(p0, sigma, size=(120, p0.size))     #Initial walkers around best fit
+    nwalkers, ndim = initial.shape                                      #Number of walkers/dimensions
     
     """
         We save the results in a table.
@@ -153,49 +167,35 @@ with MPIPool() as pool:
     #Print the number os cores/workers
     print("Workers nesse job:", pool.workers)
     print("Start")
-    """
-    This lines only check if the inputs are ok
-    ml_model     = np.array([ml])                      #mass to light ratio
-    beta_model   = np.array([beta[0]])  #anisotropy [ad]
-    p0           = np.append(ml_model, beta_model)
-    others = np.array([qinc, np.log10(mbh), kappa_s, qDM, 0.02, 88, 1.0])#Other parameters
-    p0     = np.append(p0, others)                        #All parameters
     
-    model(p0)
-    """
+    #This lines only check if the inputs are ok
+    model_emcee(p0)
+
 
     #Backup
     filename = "Simulation4.h5"
     backend = emcee.backends.HDFBackend(filename)
     backend.reset(nwalkers, ndim)
-    moves=[(emcee.moves.DEMove(), 0.80), (emcee.moves.DEMove(gamma0=1.0), 0.20)]
+    moves=[(emcee.moves.DEMove(), 0.80), (emcee.moves.DEMove(gamma0=0.80), 0.20)]
 
     #Initialize the sampler
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, model, pool=pool,
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, model_emcee, pool=pool,
                                      backend=backend, moves=moves)
     
     #Burn in fase
     burnin = 1                           #Number of burn in steps
     print("Burn in with %i steps"%burnin)
     start = time.time()
-    state = sampler.run_mcmc(pos, nsteps=burnin, progress=True)
+    state = sampler.run_mcmc(initial, nsteps=burnin, progress=True)
     print("\n")
     print("Burn in elapsed time:", time.time() - start)
     sampler.reset()
     print("\n")
     print("End of burn-in fase")
     
-    print("\n")
-    print("Testing velocity of 1 step with %i walkers."%nwalkers)
-    start = time.time()
-    state = sampler.run_mcmc(pos, nsteps=burnin, progress=True)
-    print("\n")
-    print("Test elapsed time:", time.time() - start)
-    sampler.reset()
-    print("\n")
     #End of burn in fase
     
-    nsteps = 1                          #Number of walkes 
+    nsteps = 50000                          #Number of walkes 
 
     # We'll track how the average autocorrelation time estimate changes
     index = 0
@@ -209,7 +209,7 @@ with MPIPool() as pool:
     start = time.time()
     global_time = time.time()
     
-    for sample in sampler.sample(state, iterations=nsteps, progress=True):
+    for sample in sampler.sample(initial, iterations=nsteps, progress=True):
         # Only check convergence every 100 steps
         if sampler.iteration % 100:
             continue
