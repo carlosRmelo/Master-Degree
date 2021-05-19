@@ -15,7 +15,7 @@ import astropy.units as u
 
 from multiprocessing import Pool
 
-data_folder = "/home/carlos/Documents/GitHub/Master-Degree/Autolens tests/autolens_workspace/Test_5/Simulation_Data/"
+data_folder = "/home/carlos.melo/autolens_workspace/Test_5/Simulation_Data/"
 
 #Reading MGE inputs
 surf_lum, sigma_lum, qobs_lum = np.loadtxt("Input/JAM_Input.txt", unpack=True)        #MGE decomposition
@@ -79,8 +79,8 @@ fit = al.FitImaging(masked_imaging=masked_image, tracer=tracer)
 print("Log Likelihood with Regularization:", fit.log_likelihood_with_regularization)
 print("Log Evidence:", fit.log_evidence)
 
-boundary = {'ml': [0.5, 15], 'kappa_s': [0, 2], 'qDM': [0.1, 1], 'log_mbh':[7, 11],
-                 'mag_shear': [0, 0.1], 'phi_shear': [0, 179], 'gamma': [0.80, 1.20]}
+boundary = {'ml': [1, 10], 'kappa_s': [0, 1], 'qDM': [0.1, 1], 'log_mbh':[8, 10],
+                 'mag_shear': [0, 0.1], 'phi_shear': [0, 179], 'gamma': [0.90, 1.10]}
 
 
 def prior_transform(theta):
@@ -101,12 +101,13 @@ def log_likelihood(pars):
     eNFW = al.mp.dark_mass_profiles.EllipticalNFW(kappa_s=kappa_s_model,elliptical_comps=ell_comps, scale_radius=r_s) #Set the analytical model
     mass_profile.Analytic_Model(eNFW)        #Include analytical model
     mass_profile.MGE_Updt_parameters(ml=ml_model, mbh=10**log_mbh_model, gamma=gamma_model)
-    
+    shear_comp_model = al.convert.shear_elliptical_comps_from(magnitude=mag_shear_model, phi=phi_shear_model)
+
     #New lens model
     lens_galaxy = al.Galaxy(                                            
             redshift=mass_profile.z_l,
             mass=mass_profile,
-            shear=al.mp.ExternalShear(elliptical_comps=shear_comp),
+            shear=al.mp.ExternalShear(elliptical_comps=shear_comp_model),
         )
 
     source_galaxy = al.Galaxy(
@@ -149,13 +150,13 @@ print("Best Input Log Likelihood", log_likelihood(p0))
 
 from dynesty import NestedSampler
 
-nlive = 100              # number of (initial) live points
+nlive = 1024              # number of (initial) live points
 ndim  = p0.size          # number of dimensions
 
 
 # Now run with the static sampler
-sampler = NestedSampler(log_likelihood, prior_transform, ndim, pool=Pool(),queue_size=6,
-                        nlive=nlive)
+sampler = NestedSampler(log_likelihood, prior_transform, ndim, pool=Pool(),queue_size=40,
+                        nlive=nlive, sample="rwalk")
                         
 import pickle 
 import shutil
@@ -173,7 +174,7 @@ beckup   = r"beckup/dynesty_lens_beckup.pickle"
 
 def run_dynesty():
     start = time.time()
-    for it, res in enumerate(sampler.sample()):
+    for it, res in enumerate(sampler.sample(dlogz=0.01)):
         if (it+1) % 50:
             continue
         
@@ -181,6 +182,7 @@ def run_dynesty():
         with open(f"dynesty_lens.pickle", "wb") as f:
                 pickle.dump(sampler, f)
         print("File Save!")
+        print("dlogz:", res[-1])
         print(sampler.results.summary())
         print("Cumulative Time [s]:", (time.time() - start))
         print("#############################")
@@ -188,8 +190,18 @@ def run_dynesty():
         original = r"dynesty_lens.pickle"
         beckup   = r"beckup/dynesty_lens_beckup.pickle"
         
-        beckup = shutil.copyfile(original, beckup)   
+        beckup = shutil.copyfile(original, beckup)  
+    
+    print("Saving Final Sample:")
+    # Adding the final set of live points.
+    for it_final, res in enumerate(sampler.add_live_points()):
+        pass
+
+    with open(f"dynesty_lens_final.pickle", "wb") as f:
+        pickle.dump(sampler, f) 
+    
     return print("Final")  
+
 
 
 if __name__ == '__main__':
