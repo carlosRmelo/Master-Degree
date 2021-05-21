@@ -229,6 +229,40 @@ class Models(object):
             print("Setting scalar, to avoid future problems.")
             self.beta_kind = 'scalar'
 
+    def check_beta(self, beta):
+        """
+        Check if beta is ok.
+        Avoid beta = 1, because this could cause problems.
+        Finally check if beta is inside boundaries.
+        """
+
+        if self.beta_kind == 'scalar':
+            if beta == 1:
+                return -np.inf
+            else:
+                pass
+
+            #Now check if there is inside the boundaries
+            if self.boundary['beta'][0] <= beta <= self.boundary['beta'][1]:
+                pass
+            else:
+                return -np.inf
+
+
+        elif self.beta_kind == 'vector':
+            if any(beta == 1):
+                return -np.inf
+            else:
+                pass
+
+            #Now check if there is inside the boundaries
+            for i in range(len(beta)):
+                if self.boundary['beta'][0] <= beta[i] <= self.boundary['beta'][1] :
+                    pass
+                else:
+                    return -np.inf
+        return 0.0
+
     def Updt_ML(self, parsDic):
         """
         Update the mass to light ratio based on the kind choose previously.
@@ -593,6 +627,9 @@ class Models(object):
         """
         
         parsDic = self.Dic(pars)
+        if not np.isfinite( self.check_beta(parsDic["beta"]) ):
+            #We need to check if beta is equal to 1.0, because this could cause inf's in Jampy.
+            return -1e300
         if self.quiet is False:
             print("ParsDic", parsDic)
         
