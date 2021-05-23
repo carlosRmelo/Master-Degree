@@ -10,6 +10,7 @@
 
 
 import numpy as np
+import matplotlib.pyplot as plt
 import autolens as al
 import autolens.plot as aplt
 from autoarray.fit import fit
@@ -412,7 +413,10 @@ class Models(object):
         
         self.Updt_JAM(parsDic)               #Updt values for each iteration
         if self.quiet is False:
+            plt.figure(figsize=(10,8))
             rmsModel, ml, chi2, chi2T = self.Jampy_model.run(plot=True, quiet=False)
+            plt.tight_layout()
+            #plt.close()
         else:
             rmsModel, ml, chi2, chi2T = self.Jampy_model.run()
         
