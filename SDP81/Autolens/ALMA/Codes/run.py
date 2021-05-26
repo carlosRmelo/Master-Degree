@@ -13,7 +13,7 @@ from astropy.cosmology import Planck15 as cosmo
 from astropy.cosmology import z_at_value
 import astropy.units as u
 
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 
 data_folder = "/home/carlos/Documents/GitHub/Master-Degree/SDP81/Autolens/ALMA/Data"#Reading MGE inputs
 surf_lum, sigma_lum, qobs_lum = np.loadtxt("Input/JAM_Input.txt", unpack=True)        #MGE decomposition
@@ -79,14 +79,16 @@ source_galaxy = al.Galaxy(
     regularization=al.reg.Constant(coefficient=1.50),
 )
 
+print("Starting functions...")
+start = time.time()
 tracer = al.Tracer.from_galaxies(galaxies=[lens_galaxy, source_galaxy])
-
 fit = al.FitImaging(masked_imaging=masked_image, tracer=tracer)
 
 #aplt.FitImaging.subplot_fit_imaging(fit=fit, include=aplt.Include(mask=True,critical_curves=False,caustics=False))
 print("Log Likelihood with Regularization:", fit.log_likelihood_with_regularization)
 print("Log Evidence:", fit.log_evidence)
 print("Log Likelihood :", fit.log_likelihood)
+print("Elapsed Time [s]:", (time.time() - start))
 
 
 boundary = {'ml': [0.5, 15], 'kappa_s': [0, 2], 'r_s': [5, 30], 'qDM': [0.1, 1], 'log_mbh':[7, 11],
@@ -154,25 +156,18 @@ def log_likelihood(pars):
 
 
 # ml, kappa_s, r_s qDM, log_mbh, mag_shear, phi_shear, gamma = pars
+print("Testing Likelihood call...")
+start = time.time()
 p0 = np.array([ml, kappa_, r_s, 0.85, np.log10(mbh), 0.02, 88., 1.0])
-log_likelihood(p0)
-
+value = log_likelihood(p0)
+print("Likelihood Call Valeu:", value)
+print("Likelihood Call Time:", (time.time() - start))
 
 from dynesty import NestedSampler
-
-nlive = 40               # number of (initial) live points
-ndim  = p0.size          # number of dimensions
-
-
-# Now run with the static sampler
-sampler = NestedSampler(log_likelihood, prior_transform, ndim, pool=Pool(),queue_size=6,
-                        nlive=nlive, sample="rwalk")
-                        
-import pickle 
+import _pickle  as pickle
 import shutil
 
-from dynesty import plotting as dyplot
-from dynesty import utils as dyfunc
+
 
 
 labels = ["ml", "kappa_s", "r_s", "qDM",
@@ -181,37 +176,66 @@ labels = ["ml", "kappa_s", "r_s", "qDM",
 
 original = r"dynesty_lens.pickle"
 beckup   = r"beckup/dynesty_lens_beckup.pickle"
-print("Start!!!")
 def run_dynesty():
-    start = time.time()
-    for it, res in enumerate(sampler.sample(dlogz=0.01)):
-        if (it+1) % 50:
-            continue
+    niter=1
+    ncall=0
+    with Pool(cpu_count()-1) as executor:
+        print("Number of CPUS:", cpu_count())
+        nlive = 40             # number of (initial) live points
+        ndim  = p0.size         # number of dimensions
+
+
+        # Now run with the static sampler
+        sampler = NestedSampler(log_likelihood, prior_transform, ndim, 
+                                    pool=executor, queue_size=cpu_count(),
+                                    nlive=nlive, sample="rwalk",
+                                )
+        print_func      = None
+        print_progress  = True
+        pbar,print_func = sampler._get_print_func(print_func,print_progress)                        
+        #fit_fun         = sampler.loglikelihood
         
-        print("Saving...")
-        with open(f"dynesty_lens.pickle", "wb") as f:
-                pickle.dump(sampler, f)
-        print("File Save!")
-        print("dlogz:", res[-1])
-        print(sampler.results.summary())
-        print("Cumulative Time [s]:", (time.time() - start))
-        print("#############################")
+        start = time.time()
         print("\n")
-        original = r"dynesty_lens.pickle"
-        beckup   = r"beckup/dynesty_lens_beckup.pickle"
+        print("Job started!")
+        for it, res in enumerate(sampler.sample(dlogz=0.01)):
+            
+            (worst, ustar, vstar, loglstar, logvol,
+                    logwt, logz, logzvar, h, nc, worst_it,
+                    boundidx, bounditer, eff, delta_logz) = res
+
+            niter+=1
+            ncall+=nc
+
+            print_func(res,niter,ncall,nbatch=0,dlogz=0.01,logl_max=np.inf)
+
+            
+            if it%50:
+                continue
+            print("\n")
+            print("Saving...")
+            with open(f"dynesty_lens.pickle", "wb") as f:
+                pickle.dump(sampler, f, -1)
+                f.close()
+            print("File Save!\n")
+            print("Cumulative Time [s]:", (time.time() - start))
+            print("\n ########################################## \n")
+
+            original = r"dynesty_lens.pickle"
+            beckup   = r"beckup/dynesty_lens_beckup.pickle"
+            
+            beckup = shutil.copyfile(original, beckup)  
         
-        beckup = shutil.copyfile(original, beckup)  
-    
+    print("Elapse Time:", (time.time() - start))  
     print("Saving Final Sample:")
     # Adding the final set of live points.
     for it_final, res in enumerate(sampler.add_live_points()):
         pass
 
-    with open(f"dynesty_lens_final.pickle", "wb") as f:
-        pickle.dump(sampler, f) 
+    with open(f"final_dynesty_lens.pickle", "wb") as f:
+        pickle.dump(sampler, f, -1) 
     print("Saved!!")
     return print("Final")  
-
 
 
 if __name__ == '__main__':
