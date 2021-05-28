@@ -1,0 +1,264 @@
+#Control time packages
+import time
+import os
+
+from numpy.core import machar
+os.environ["OMP_NUM_THREADS"] = "1"
+
+import autolens as al
+import autolens.plot as aplt
+import numpy as np
+
+from astropy.cosmology import Planck15 as cosmo
+import astropy.units as u
+
+from schwimmbad import MPIPool
+
+data_folder = "/home/carlos/Documents/GitHub/Master-Degree/SDP81/Autolens/ALMA/Data"#Reading MGE inputs
+surf_lum, sigma_lum, qobs_lum = np.loadtxt("Input/JAM_Input.txt", unpack=True)        #MGE decomposition
+
+boundary = {'ml': [0.5, 15], 'kappa_s': [0, 2], 'r_s': [5, 30], 'qDM': [0.1, 1], 'log_mbh':[7, 11],
+                    'mag_shear': [0, 0.1], 'phi_shear': [0, 179], 'gamma': [0.95, 1.05]}
+
+class Model(object):
+
+    def __init__(self, mass_model, masked_image):
+        self.mass_profile  = mass_model
+        self.masked_image = masked_image
+
+    def prior_transform(self, theta):
+        ml, kappa_s, qDM, r_s, log_mbh, mag_shear, phi_shear, gamma = theta
+        parsDic = {"ml": ml, "kappa_s": kappa_s, "r_s": r_s, "qDM": qDM,
+                        "log_mbh":log_mbh, "mag_shear": mag_shear, "phi_shear": phi_shear, 
+                        "gamma": gamma}
+        for key in parsDic:
+            parsDic[key] = boundary[key][0] + parsDic[key]*(boundary[key][1] - boundary[key][0])
+            
+        return np.array(list(parsDic.values()))
+
+    def log_likelihood(self, pars):
+        quiet=True
+        ml_model, kappa_s_model, r_s_model, qDM_model, log_mbh_model, mag_shear_model, phi_shear_model, gamma_model = pars
+        
+        ell_comps = al.convert.elliptical_comps_from(axis_ratio=qDM_model, phi=0.0) #Elliptical components in Pyautolens units
+        eNFW = al.mp.dark_mass_profiles.EllipticalNFW(kappa_s=kappa_s_model,elliptical_comps=ell_comps, scale_radius=r_s_model) #Set the analytical model
+        self.mass_profile.Analytic_Model(eNFW)        #Include analytical model
+        self.mass_profile.MGE_Updt_parameters(ml=ml_model, mbh=10**log_mbh_model, gamma=gamma_model)
+        shear_comp_model = al.convert.shear_elliptical_comps_from(magnitude=mag_shear_model, phi=phi_shear_model)
+        #New lens model
+        lens_galaxy = al.Galaxy(                                            
+                redshift=self.mass_profile.z_l,
+                mass=self.mass_profile,
+                shear=al.mp.ExternalShear(elliptical_comps=shear_comp_model),
+            )
+
+        source_galaxy = al.Galaxy(
+                redshift=self.mass_profile.z_s,
+                pixelization=al.pix.Rectangular(shape=(40, 40)),
+                regularization=al.reg.Constant(coefficient=1.5),
+            )
+        tracer = al.Tracer.from_galaxies(galaxies=[lens_galaxy, source_galaxy])
+        
+        try:
+            fit = al.FitImaging(masked_imaging=self.masked_image, tracer=tracer)
+
+            log_evidence = fit.log_evidence
+
+                
+            if quiet is False:
+                print("Lens Galaxy Configuration:")
+                print("Log Likelihood_with_regularization:", fit.log_likelihood)
+                print("Log Normalization", fit.log_likelihood)
+                print("Log Evidence:", fit.log_evidence)
+                print("#------------------------------------#")
+                print(lens_galaxy)
+                print("\n")
+
+
+                aplt.FitImaging.subplot_fit_imaging(fit=fit, include=aplt.Include(mask=True))
+                aplt.Inversion.reconstruction(fit.inversion)              
+
+
+            return log_evidence
+        except:
+            print("An exception ocurres in Pyautolens_log_likelihood().")
+            return -np.inf
+    
+    def __call__(self, pars):
+        return self.log_likelihood(pars)
+
+def resume_dlogz(sampler):
+        results = sampler.results
+        logz_remain = np.max(sampler.live_logl) + results.logvol[-1]
+        delta_logz = np.logaddexp(results.logz[-1], logz_remain) - results.logz[-1]
+        
+        return delta_logz
+        
+
+with MPIPool() as pool:
+
+    if not pool.is_master():
+        pool.wait()
+        sys.exit(0)
+    #Only for lensing modelling 
+    z_l    = 0.299                                                         #Lens Redshift
+    z_s    = 3.042                                                         #Source Redshift 
+    D_l    = cosmo.angular_diameter_distance(z_l).value                    #Distance to lens [Mpc] 
+    mbh    = 1e9                                                           #mass of black hole [log10(M_sun)]
+    kappa_ = 0.075                                                         #kappa_s of DM profile
+    r_s    = 11.5
+    ml     = 7.00                                                          #mass to light ratio
+    phi_shear = 88                                                         #Inclination of external shear [deg]
+    mag_shear = 0.02                                                       #magnitude of shear
+    shear_comp = al.convert.shear_elliptical_comps_from(magnitude=mag_shear, phi=phi_shear) #external shear
+
+    #Autolens Data
+    imaging = al.Imaging.from_fits(
+            image_path=f"{data_folder}/Alma_with_lens_center.fits",
+            noise_map_path=f"{data_folder}/rms_noise_map.fits",
+            psf_path=f"{data_folder}/Alma_psf_rot.fits",
+            pixel_scales=0.01,
+            image_hdu=1, noise_map_hdu=1, psf_hdu=1,
+        )
+
+    mask        = al.Mask.from_fits( file_path=f"{data_folder}/mask2.fits", 
+                                    pixel_scales=imaging.pixel_scales)
+
+    masked_image = al.MaskedImaging(imaging=imaging, mask=mask, inversion_uses_border=True)   #Masked image
+    #aplt.Imaging.subplot_imaging(imaging=imaging, mask=mask)
+
+    #--------------------------------------------------------------------------------------------------#
+    #--------------------------------------------------------------------------------------------------#
+    #--------------------------------------------------------------------------------------------------#
+    # PYAUTOLENS MODEL
+    #MGE mass profile
+
+    #Initializing
+    mass_profile = al.mp.MGE()
+    ell_comps = al.convert.elliptical_comps_from(axis_ratio=0.85, phi=0.0) #Elliptical components in Pyautolens units
+    eNFW      = al.mp.dark_mass_profiles.EllipticalNFW(kappa_s=kappa_, elliptical_comps=ell_comps, scale_radius=r_s) #pseudo elliptical NFW
+
+
+    #Components
+
+    mass_profile.MGE_comps(z_l=z_l, z_s=z_s, 
+                        surf_lum=surf_lum, sigma_lum=sigma_lum, qobs_lum=qobs_lum, ml=ml,
+                        mbh=mbh)
+    mass_profile.Analytic_Model(analytic_profile=eNFW)
+
+
+
+    #Lens galaxy
+    lens_galaxy = al.Galaxy(
+        redshift=z_l,
+        mass=mass_profile,
+        shear=al.mp.ExternalShear(elliptical_comps=shear_comp)
+    )
+
+    source_galaxy = al.Galaxy(
+        redshift=z_s,
+        pixelization=al.pix.Rectangular(shape=(40, 40)),
+        regularization=al.reg.Constant(coefficient=1.50),
+    )
+
+    print("Starting functions... \n")
+    start = time.time()
+    tracer = al.Tracer.from_galaxies(galaxies=[lens_galaxy, source_galaxy])
+    fit = al.FitImaging(masked_imaging=masked_image, tracer=tracer)
+
+    #aplt.FitImaging.subplot_fit_imaging(fit=fit, include=aplt.Include(mask=True,critical_curves=False,caustics=False))
+    print("Log Likelihood with Regularization:", fit.log_likelihood_with_regularization)
+    print("Log Evidence:", fit.log_evidence)
+    print("Log Likelihood :", fit.log_likelihood)
+    print("Elapsed Time [s]:", (time.time() - start))
+
+    #Defing Model
+    model = Model(mass_model=mass_profile, masked_image=masked_image)
+
+    
+
+    # ml, kappa_s, r_s qDM, log_mbh, mag_shear, phi_shear, gamma = pars
+    print("\n Testing Likelihood call...")
+    start = time.time()
+    p0 = np.array([ml, kappa_, r_s, 0.85, np.log10(mbh), 0.02, 88., 1.0])
+    value = model(p0)
+    print("Likelihood Call Value:", value)
+    print("Likelihood Call Time:", (time.time() - start))
+
+    from dynesty import NestedSampler
+    import _pickle  as pickle
+    import shutil
+
+    labels = ["ml", "kappa_s", "r_s", "qDM",
+                        "log_mbh", "mag_shear", "phi_shear", 
+                        "gamma"]
+
+    original = r"dynesty_lens.pickle"
+    beckup   = r"beckup/dynesty_lens_beckup.pickle"
+    log_table = np.savetxt("Log.txt", np.column_stack([0.0,0.0,0.0,0.0]), 
+                        header="Maxiter \t Maxcall \t dlogz \t Time[s]", 
+                        fmt="%d \t\t %d \t\t %f \t %f")
+    
+
+    print("\n Number of CPUS:", pool.size)
+    print("\n")
+    nlive = 40              # number of (initial) live points
+    ndim  = p0.size         # number of dimensions
+    sampling = "slice"      # sampling method
+
+
+
+    # Now run with the static sampler
+    sampler = NestedSampler(model, model.prior_transform, ndim,
+                                pool=pool,
+                                nlive=nlive, sample=sampling,
+                            )
+    # These hacks are necessary to be able to pickle the sampler.
+    sampler.rstate = np.random
+    sampler.pool   = pool
+    sampler.M      = pool.map
+
+
+    delta_logz = 1e200
+    while delta_logz > 0.1:
+        maxcall = 10
+        start = time.time()
+
+        sampler.run_nested(
+                            maxcall=maxcall, 
+                            dlogz=0.1,
+                            print_progress=False
+        )
+
+        
+        delta_logz = resume_dlogz(sampler)
+        sampler_pickle = sampler
+        sampler_pickle.loglikelihood = None
+
+        with open(f"dynesty_lens.pickle", "wb") as f:
+            pickle.dump(sampler_pickle, f, -1)
+            f.close()
+        
+        sampler_pickle.loglikelihood = model.log_likelihood
+
+        
+        # Performing Update
+        original = r"dynesty_lens.pickle"
+        beckup   = r"beckup/dynesty_lens_beckup.pickle" 
+
+        beckup = shutil.copyfile(original, beckup)
+        log_table = np.loadtxt("Log.txt")
+        run_time = time.time() - start
+        np.savetxt("Log.txt",
+                    np.vstack([log_table,np.array([sampler.results.niter, sampler.results.ncall.sum(), delta_logz, run_time])]),
+                    header="Maxiter \t Maxcall \t dlogz \t Time[s]", 
+                    fmt="%d \t\t %d \t\t %f \t %f")
+        
+        print(f"\nniter: %d. ncall: %d. dlogz: %f." %(sampler.it, sampler.ncall,delta_logz))
+
+    
+
+    print(f"\nSaving Final Sample:")
+    with open(f"final_dynesty_lens.pickle", "wb") as f:
+        pickle.dump(sampler, f, -1) 
+    print(f"\nSaved!!")     

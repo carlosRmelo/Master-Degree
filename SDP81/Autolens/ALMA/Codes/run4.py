@@ -9,11 +9,13 @@ import autolens as al
 import autolens.plot as aplt
 import numpy as np
 
+from time import perf_counter as clock
+
 from astropy.cosmology import Planck15 as cosmo
 from astropy.cosmology import z_at_value
 import astropy.units as u
 
-from schwimmbad import MultiPool
+from multiprocessing import Pool, cpu_count
 
 data_folder = "/home/carlos/Documents/GitHub/Master-Degree/SDP81/Autolens/ALMA/Data"#Reading MGE inputs
 surf_lum, sigma_lum, qobs_lum = np.loadtxt("Input/JAM_Input.txt", unpack=True)        #MGE decomposition
@@ -187,67 +189,44 @@ log_table = np.savetxt("Log.txt", np.column_stack([0.0,0.0,0.0,0.0]),
                        fmt="%d \t\t %d \t\t %f \t %f")
 
 def run_dynesty():
+    maxiter = 0
+    delta_logz = 1e200
 
-    with MultiPool() as pool:
+    print("\n Number of CPUS:", cpu_count())
+    print("\n")
+    nlive = 40             # number of (initial) live points
+    ndim  = p0.size         # number of dimensions
+    sampling = "slice"      # sampling method
+
+
+
+    # Now run with the static sampler
+    sampler = NestedSampler(log_likelihood, prior_transform, ndim,
+                                pool=Pool(), queue_size=cpu_count(),
+                                nlive=nlive, sample=sampling,
+                            )
+
+    while delta_logz > 0.01:
+        maxcall = 250
+        start = time.time()
+        sampler.run_nested(maxcall=maxcall, dlogz=0.01, print_progress=False)
 
         
+        delta_logz = resume_dlogz(sampler)
+        with open(f"dynesty_lens.pickle", "wb") as f:
+            pickle.dump(sampler, f, -1)
+            f.close()
+        original = r"dynesty_lens.pickle"
+        beckup   = r"beckup/dynesty_lens_beckup.pickle"
         
-
-        print("\n Number of CPUS:", pool.size)
-        print("\n")
-        nlive = 40              # number of (initial) live points
-        ndim  = p0.size         # number of dimensions
-        sampling = "slice"      # sampling method
-
-
-
-        # Now run with the static sampler
-        sampler = NestedSampler(log_likelihood, prior_transform, ndim,
-                                    pool=pool,
-                                    nlive=nlive, sample=sampling,
-                                )
-        # These hacks are necessary to be able to pickle the sampler.
-        sampler.rstate = np.random
-        sampler.pool   = pool
-        sampler.M      = pool.map
-
-
-        delta_logz = 1e200
-        while delta_logz > 0.1:
-            maxcall = 10
-            start = time.time()
-
-            sampler.run_nested(
-                                maxcall=maxcall, 
-                                dlogz=0.1,
-                                print_progress=False
-            )
-
-            
-            delta_logz = resume_dlogz(sampler)
-            sampler_pickle = sampler
-            sampler_pickle.loglikelihood = None
-
-            with open(f"dynesty_lens.pickle", "wb") as f:
-                pickle.dump(sampler_pickle, f, -1)
-                f.close()
-            
-            sampler_pickle.loglikelihood = log_likelihood
-
-            
-            # Performing Update
-            original = r"dynesty_lens.pickle"
-            beckup   = r"beckup/dynesty_lens_beckup.pickle" 
-
-            beckup = shutil.copyfile(original, beckup)
-            log_table = np.loadtxt("Log.txt")
-            run_time = time.time() - start
-            np.savetxt("Log.txt",
-                        np.vstack([log_table,np.array([sampler.results.niter, sampler.results.ncall.sum(), delta_logz, run_time])]),
-                        header="Maxiter \t Maxcall \t dlogz \t Time[s]", 
-                        fmt="%d \t\t %d \t\t %f \t %f")
-            
-            print(f"\nniter: %d. ncall: %d. dlogz: %f." %(sampler.it, sampler.ncall,delta_logz))
+        # Performing Update
+        beckup = shutil.copyfile(original, beckup)
+        log_table = np.loadtxt("Log.txt")
+        run_time = time.time() - start
+        np.savetxt("Log.txt", np.vstack([log_table,np.array([sampler.results.niter, sampler.results.ncall.sum(),delta_logz, run_time])]), 
+                              header="Maxiter \t Maxcall \t dlogz \t Time[s]", 
+                              fmt="%d \t\t %d \t\t %f \t %f")
+        print(f"\nniter: %d. ncall: %d. dlogz: %f." %(sampler.it, sampler.ncall,delta_logz))
  
         
     
