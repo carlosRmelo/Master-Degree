@@ -1,8 +1,6 @@
 #Control time packages
 import time
 import os
-
-from numpy.core import machar
 os.environ["OMP_NUM_THREADS"] = "1"
 
 import autolens as al
@@ -184,10 +182,6 @@ labels = ["ml", "kappa_s", "r_s", "qDM",
 
 original = r"dynesty_lens.pickle"
 beckup   = r"beckup/dynesty_lens_beckup.pickle"
-log_table = np.savetxt("Log.txt", np.column_stack([0.0,0.0,0.0,0.0]), 
-                       header="Maxiter \t Maxcall \t dlogz \t Time[s]", 
-                       fmt="%d \t\t %d \t\t %f \t %f")
-
 def run_dynesty():
     maxiter = 0
     delta_logz = 1e200
@@ -196,44 +190,40 @@ def run_dynesty():
     print("\n")
     nlive = 40             # number of (initial) live points
     ndim  = p0.size         # number of dimensions
-    sampling = "slice"      # sampling method
-
 
 
     # Now run with the static sampler
-    sampler = NestedSampler(log_likelihood, prior_transform, ndim,
+    sampler = NestedSampler(log_likelihood, prior_transform, ndim, 
                                 pool=Pool(), queue_size=cpu_count(),
-                                nlive=nlive, sample=sampling,
+                                nlive=nlive, sample="rwalk",
                             )
 
     while delta_logz > 0.01:
-        maxcall = 250
-        start = time.time()
-        sampler.run_nested(maxcall=maxcall, dlogz=0.01, print_progress=False)
+        maxiter += 50
+        sampler.run_nested(maxiter=maxiter, dlogz=0.01)
 
-        
         delta_logz = resume_dlogz(sampler)
+
+        print("\n Saving...")
         with open(f"dynesty_lens.pickle", "wb") as f:
             pickle.dump(sampler, f, -1)
             f.close()
+        print("File Save!\n")
+        print("Cumulative Time [s]:", (time.time() - start))
+        print("\n ########################################## \n")
+
         original = r"dynesty_lens.pickle"
         beckup   = r"beckup/dynesty_lens_beckup.pickle"
         
-        # Performing Update
-        beckup = shutil.copyfile(original, beckup)
-        log_table = np.loadtxt("Log.txt")
-        run_time = time.time() - start
-        np.savetxt("Log.txt", np.vstack([log_table,np.array([sampler.results.niter, sampler.results.ncall.sum(),delta_logz, run_time])]), 
-                              header="Maxiter \t Maxcall \t dlogz \t Time[s]", 
-                              fmt="%d \t\t %d \t\t %f \t %f")
-        print(f"\nniter: %d. ncall: %d. dlogz: %f." %(sampler.it, sampler.ncall,delta_logz))
+        beckup = shutil.copyfile(original, beckup) 
  
         
-    
-    print(f"\nSaving Final Sample:")
+    print("Elapse Time:", (time.time() - start))  
+    print("Saving Final Sample:")
+
     with open(f"final_dynesty_lens.pickle", "wb") as f:
         pickle.dump(sampler, f, -1) 
-    print(f"\nSaved!!")
+    print("Saved!!")
     return print("Final")  
 
 

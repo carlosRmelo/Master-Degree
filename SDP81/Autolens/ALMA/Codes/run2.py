@@ -1,8 +1,6 @@
 #Control time packages
 import time
 import os
-
-from numpy.core import machar
 os.environ["OMP_NUM_THREADS"] = "1"
 
 import autolens as al
@@ -81,7 +79,7 @@ source_galaxy = al.Galaxy(
     regularization=al.reg.Constant(coefficient=1.50),
 )
 
-print("Starting functions... \n")
+print("Starting functions...")
 start = time.time()
 tracer = al.Tracer.from_galaxies(galaxies=[lens_galaxy, source_galaxy])
 fit = al.FitImaging(masked_imaging=masked_image, tracer=tracer)
@@ -158,23 +156,17 @@ def log_likelihood(pars):
 
 
 # ml, kappa_s, r_s qDM, log_mbh, mag_shear, phi_shear, gamma = pars
-print("\n Testing Likelihood call...")
+print("Testing Likelihood call...")
 start = time.time()
 p0 = np.array([ml, kappa_, r_s, 0.85, np.log10(mbh), 0.02, 88., 1.0])
 value = log_likelihood(p0)
-print("Likelihood Call Value:", value)
+print("Likelihood Call Valeu:", value)
 print("Likelihood Call Time:", (time.time() - start))
 
 from dynesty import NestedSampler
 import _pickle  as pickle
 import shutil
 
-def resume_dlogz(sampler):
-    results = sampler.results
-    logz_remain = np.max(sampler.live_logl) + results.logvol[-1]
-    delta_logz = np.logaddexp(results.logz[-1], logz_remain) - results.logz[-1]
-    
-    return delta_logz
 
 
 
@@ -184,56 +176,65 @@ labels = ["ml", "kappa_s", "r_s", "qDM",
 
 original = r"dynesty_lens.pickle"
 beckup   = r"beckup/dynesty_lens_beckup.pickle"
-log_table = np.savetxt("Log.txt", np.column_stack([0.0,0.0,0.0,0.0]), 
-                       header="Maxiter \t Maxcall \t dlogz \t Time[s]", 
-                       fmt="%d \t\t %d \t\t %f \t %f")
-
 def run_dynesty():
-    maxiter = 0
-    delta_logz = 1e200
-
-    print("\n Number of CPUS:", cpu_count())
-    print("\n")
-    nlive = 40             # number of (initial) live points
-    ndim  = p0.size         # number of dimensions
-    sampling = "slice"      # sampling method
+    niter=1
+    ncall=0
+    with Pool(cpu_count()-1) as executor:
+        print("Number of CPUS:", cpu_count())
+        nlive = 40             # number of (initial) live points
+        ndim  = p0.size         # number of dimensions
 
 
-
-    # Now run with the static sampler
-    sampler = NestedSampler(log_likelihood, prior_transform, ndim,
-                                pool=Pool(), queue_size=cpu_count(),
-                                nlive=nlive, sample=sampling,
-                            )
-
-    while delta_logz > 0.01:
-        maxcall = 250
+        # Now run with the static sampler
+        sampler = NestedSampler(log_likelihood, prior_transform, ndim, 
+                                    pool=executor, queue_size=cpu_count(),
+                                    nlive=nlive, sample="rwalk",
+                                )
+        print_func      = None
+        print_progress  = True
+        pbar,print_func = sampler._get_print_func(print_func,print_progress)                        
+        #fit_fun         = sampler.loglikelihood
+        
         start = time.time()
-        sampler.run_nested(maxcall=maxcall, dlogz=0.01, print_progress=False)
+        print("\n")
+        print("Job started!")
+        for it, res in enumerate(sampler.sample(dlogz=0.01)):
+            
+            (worst, ustar, vstar, loglstar, logvol,
+                    logwt, logz, logzvar, h, nc, worst_it,
+                    boundidx, bounditer, eff, delta_logz) = res
 
+            niter+=1
+            ncall+=nc
+
+            print_func(res,niter,ncall,nbatch=0,dlogz=0.01,logl_max=np.inf)
+
+            
+            if it%50:
+                continue
+            print("\n")
+            print("Saving...")
+            with open(f"dynesty_lens.pickle", "wb") as f:
+                pickle.dump(sampler, f, -1)
+                f.close()
+            print("File Save!\n")
+            print("Cumulative Time [s]:", (time.time() - start))
+            print("\n ########################################## \n")
+
+            original = r"dynesty_lens.pickle"
+            beckup   = r"beckup/dynesty_lens_beckup.pickle"
+            
+            beckup = shutil.copyfile(original, beckup)  
         
-        delta_logz = resume_dlogz(sampler)
-        with open(f"dynesty_lens.pickle", "wb") as f:
-            pickle.dump(sampler, f, -1)
-            f.close()
-        original = r"dynesty_lens.pickle"
-        beckup   = r"beckup/dynesty_lens_beckup.pickle"
-        
-        # Performing Update
-        beckup = shutil.copyfile(original, beckup)
-        log_table = np.loadtxt("Log.txt")
-        run_time = time.time() - start
-        np.savetxt("Log.txt", np.vstack([log_table,np.array([sampler.results.niter, sampler.results.ncall.sum(),delta_logz, run_time])]), 
-                              header="Maxiter \t Maxcall \t dlogz \t Time[s]", 
-                              fmt="%d \t\t %d \t\t %f \t %f")
-        print(f"\nniter: %d. ncall: %d. dlogz: %f." %(sampler.it, sampler.ncall,delta_logz))
- 
-        
-    
-    print(f"\nSaving Final Sample:")
+    print("Elapse Time:", (time.time() - start))  
+    print("Saving Final Sample:")
+    # Adding the final set of live points.
+    for it_final, res in enumerate(sampler.add_live_points()):
+        pass
+
     with open(f"final_dynesty_lens.pickle", "wb") as f:
         pickle.dump(sampler, f, -1) 
-    print(f"\nSaved!!")
+    print("Saved!!")
     return print("Final")  
 
 
