@@ -1,0 +1,16 @@
+Modelo lente+dinâmcia utilizando os dados do ALMA+MUSE+HST.
+Alguns presupostos adotados:
+
+1. Dados do ALMA binnados em 4x4
+2. Dados do MUSE binnados por Voronoi para SNR25
+3. Todos os spaxels do MUSE, na região de emissão da galáxia, com SNR>2 foram selecionados como goodbins
+	3a. Dos goodbins acima, foram exluidos alguns spaxels que estavam na região de maior emissão dos arcos
+	3b. Apenas após a exclusão destes spaxels o Voronoi foi aplicado 
+4. Outras suposições adotadas podem ser vistas no arquivo de run *run_mpi.py*
+5. A análise dos dados foi feita no notebook *Analyse.ipynb*
+6. A pasta ~Data/~ contém os dados de entrada do modelo. Para a lente são imagens .fits e para a dinâmica tabelas .txt
+7. Os ajustes feitos com ppxf estão disponíveis em: ~/home/carlos/Desktop/pPXF(SDP)/Final/Data~
+   Já os códigos se encontram em: ~/home/carlos/Desktop/pPXF(SDP)/Final/Codes/Voronoi~
+	7a. Os erros foram estimados com uma estratégia de bootstrapping, os ajustes e plots da estratégia estão na pasta ~Bootstrapping~
+	7b. A tabela com os dados disponível em ~Input/~ já conta com os erros estimados via bootstrapping
+8. Para a anisotropia, cada gaussiana do modelo MGE possui uma própria. Com excessão as duas internas que compartilham o mesmo valor.
