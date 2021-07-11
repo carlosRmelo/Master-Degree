@@ -1,0 +1,9 @@
+Dados de Saída do Daophot durante a construção da ePSF do MUSE seguindo o doc Extracting_PSF_using_DAOPHOT.pdf
+O arquivo com a imagem utilizada é o fields.fits
+O arquivo final da PSF chama fields_psf2.fits (não normalizado).
+O arquivo com a subtração dessa PSF chama field.sub.2.fits
+
+Foram usadas estrelas do campo que constavam no SDSS (http://skyserver.sdss.org/dr16/en/tools/chart/navi.aspx).
+Algumas delas podem ser encontradas no arquivo de catálogo (sdss.cvs) obtido pelo TopCat.
+
+Essa PSF agora deve ser parametrizada pelo MGE e normalizada.

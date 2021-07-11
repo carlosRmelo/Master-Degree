@@ -262,13 +262,13 @@ class mge_fit_1d(object):
         ax[0].loglog(self.x, self.yfit)
         ax[0].loglog(self.x, self.gauss*self.weights[None, :])
         ax[0].set_ylabel("x")
-        ax[0].set_ylabel("$ y = \\frac{100}{(1 + x)^4}$", fontsize=15)
+        ax[0].set_ylabel("$\\rho(r)$ $\\,$ [$M_\\odot$/$pc^3$]", fontsize=15)
 
         ax[1].set_ylim([-20, 20])
         ax[1].axhline(linestyle='--', c='C1')
         ax[1].semilogx(self.x, self.err*100, c='C0')
         ax[1].semilogx(np.tile(10**self.log_sigma, [2, 1]), [-20, -15])
-        ax[1].set_xlabel("x", fontsize=15)
+        ax[1].set_xlabel("r [pc]", fontsize=15)
         ax[1].set_ylabel("residuals (%)", fontsize=15)
 
 #----------------------------------------------------------------------------
