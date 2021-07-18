@@ -192,7 +192,7 @@ with MPIPool() as pool:
             image_path=f"{data_folder}/Alma_with_lens_center.fits",
             noise_map_path=f"{data_folder}/rms_noise_map.fits",
             psf_path=f"{data_folder}/Alma_psf_rot.fits",
-            pixel_scales=0.01,
+            pixel_scales=0.02,
             image_hdu=1, noise_map_hdu=1, psf_hdu=1,
         )
 
