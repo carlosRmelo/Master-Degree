@@ -1,0 +1,13 @@
+1. compile mge_fit c library
+    cd cmge1d_fit
+    make
+    make clean
+  this will create a library named libmge1d_mpfit.so.
+  Put this library under $LD_LIBRARY_PATH
+
+2. go back to the mge1d folder
+     ./makesetup 
+  This will create another .so file, put it under $PYTHONPATH
+
+3. run the test file.
+   python run.py

@@ -1,0 +1,8 @@
+Nesses códigos são realizados cortes ao redor da SDP.81.
+Além disso, também há a correção de um pequeno offset entre as imagens.
+
+Por fim, a imagem é centralizada (Centralize.ipynb) ao redor da galáxia.
+
+
+O primeiro corte (Corte_F110w.fits e Corte_F160w.fits) é feito em uma regioão maior (50''), de modo que estrelas possam ser pegas no campo.
+Depois disso as imagens são alinhadas (Corte_F110w_align.fits e Corte_F160w_align.fits) para eliminar o offset entre elas. No final estas imagens são recortadas novamente ao redor da galáxia (15''), para termos apenas sua luz.
