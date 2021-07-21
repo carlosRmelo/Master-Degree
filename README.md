@@ -22,7 +22,7 @@ List of Python packages and their version. To avoid possible incompatibility we 
 
 	pip install package == version
 
-Lista de pacotes Python e suas versões. Para evitar possíveis incompatibilidades, recomendamos o uso das mesmas versões listadas abaixo. Você pode instalá-las usando o comando __ [pip] (https://pip.pypa.io/en/stable/installing/) __ da seguinte forma:
+Lista de pacotes Python e suas versões. Para evitar possíveis incompatibilidades, recomendamos o uso das mesmas versões listadas abaixo. Você pode instalá-las usando o comando __[pip](https://pip.pypa.io/en/stable/installing/)__ da seguinte forma:
 
 	pip install package == version
     
