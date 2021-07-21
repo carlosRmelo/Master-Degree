@@ -1,4 +1,10 @@
+# Nada dentro dessa pasta deve ser considerado. São apenas testes!!!!!
+
+
 ## Lens Modeling with Pyautolens develop by James
+
+
+
 
 Nesta pasta se encontram os dados e códigos necessários para o modelamento da lente em ESO325.
 

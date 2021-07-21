@@ -1,3 +1,5 @@
+# Nada dentro dessa pasta deve ser considerdo como resultado. São apenas testes de implementação. Toda precaução com o que ver!!!
+
 ## Nota ao leitor
 
 Como forma de testar os códigos e averiguar a implementação dos mesmos, nosso primeiro objetivo é reproduzir os resultados encontrados por __[Collett et. al 2018](https://science.sciencemag.org/content/360/6395/1342)__ para a galáxia ESO325-G004 (ESO325).
