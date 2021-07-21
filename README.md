@@ -1,26 +1,30 @@
 # Master-Degree
-Master Degree Research: Testing the General Relativity in galactic scales using gravitational lensing and galaxy dynamics.
+Master Degree Research: Testing General Relativity at Galactic Scales using Gravitational Lensing and Galaxy Dynamics.
 
-This Github repository stores all the codes and data used during my master's research. Most of the code is written in python and is in notebook format, except for rare exceptions that will be specified. The codes and data are open and can be obtained from the links in each document.
+This Github repository stores all the codes and data used during my Master's research. Most of the scripts are written in Python and are in __[Notebook](https://jupyter.org/)__ format, except for rare exceptions that will be specified. The codes and data are open and can be obtained from the links in each document. Some of the documentation is still in development. Any questions, please send me an e-mail. 
 
-Never forget that part of the science lies in reproducibility, so always consider leaving your data and codes open.
+I believe that a free and open science is the best way to build a more robust and transparent Science, and also a way to promote equity and social justice, providing equal access to information, research and data. So, always consider making your research public.
 
-Questions or sugestions?: carlos.melo@ufrgs.br
 
-Este repositório Github armazena todos os códigos e dados utilizados durante minha pesquisa de mestrado. A maior parte dos códigos é escrita em python e estão em formato notebook, salva raras excessões que estarão especificadas. Os códigos e dados são abertos e podem ser obtidos nos links que constam em cada documento.
+Questions or suggestions?: carlos.melo@ufrgs.br
 
-Nunca se esqueça de que parte da ciência reside na reprodutibilidade, por isso considere sempre deixar seus dados e códigos abertos.
+
+Este repositório Github armazena todos os códigos e dados utilizados durante minha pesquisa de Mestrado. A maior parte dos códigos é escrita em Python e estão em formato __[Notebook](https://jupyter.org/)__, salva raras excessões que estarão especificadas. Os códigos e dados são abertos e podem ser obtidos nos links que constam em cada documento. Parte da documentação ainda está em desenvolviento. Em caso de dúvidas, por favor me envie um e-mail.
+
+Acredito que uma ciência livre e aberta é a melhor forma de construir uma Ciência mais robusta e transparente, e também uma forma de promover a equidade e a justiça social, proporcionando igualdade de acesso a informações, pesquisas e dados. Portanto, sempre considere tornar sua pesquisa pública.
 
 Perguntas ou sugestões?: carlos.melo@ufrgs.br
 
 
 
-### Versão dos Pacotes Utilizados
-Além dos pacotes principais responsáveis pelos modelamentos dinâmico e de lente, alguns pacotes adicionais devem estar instalados. Em geral, para os astrônomos e astrofísicos de plantão, esses pacotes já se encontram instalados. Mas caso não seja o seu caso, você deve instalá-los antes de começar a explorar as demais pastas.
+### Package Version/Versão dos Pacotes
+List of Python packages and their version. To avoid possible incompatibility we recommend using the same versions listed below. You can install them using the __[pip](https://pip.pypa.io/en/stable/installing/)__ command as follows:
 
-Para evitar qualquer tipo de incompatibilidade, é recomendado a que a versão desses pacotes seja a mesma especificada abaixo. As versões recomendadas podem ser facilmente instaladas via terminal com o comando __[pip](https://pip.pypa.io/en/stable/installing/)__ da seguinte maneira:
+	pip install package == version
 
-    pip install package == version
+Lista de pacotes Python e suas versões. Para evitar possíveis incompatibilidades, recomendamos o uso das mesmas versões listadas abaixo. Você pode instalá-las usando o comando __ [pip] (https://pip.pypa.io/en/stable/installing/) __ da seguinte forma:
+
+	pip install package == version
     
     
 - [Astropy](https://www.astropy.org/)    v.4.1
