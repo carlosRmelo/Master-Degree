@@ -1,0 +1,13 @@
+Resultados finais do modelo lente+dinâmcia utilizando os dados do ALMA+MUSE+HST.
+Alguns presupostos adotados:
+
+1. Dados do ALMA binnados em 4x4
+2. Dados do MUSE binnados por Voronoi para SNR25
+3. Todos os spaxels do MUSE, na região de emissão da galáxia, com SNR>2 foram utilizados no Voronoi
+4. Outras suposições adotadas podem ser vistas no arquivo de run *run_mpi.py*
+5. A análise dos dados foi feita no notebook *Analyse.ipynb*
+6. A pasta ~Data/~ contém os dados de entrada do modelo. Para a lente são imagens .fits e para a dinâmica tabelas .txt
+7. Os ajustes feitos com ppxf estão disponíveis em: ~/home/carlos/Desktop/pPXF(SDP)/Final/Data (SNR25)~
+8. Para a anisotropia, cada gaussiana do modelo MGE possui uma própria. Com excessão as duas internas que compartilham o mesmo valor.
+9. Flat Priors para todos os parâmetros
+
